@@ -156,11 +156,11 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
           className="px-4 py-2 hover:bg-gray-100 border-2 border-black font-bold"
           aria-label="Previous week"
         >
-          ← Previous
+          ← Previous Month
         </button>
         
-        <h2 className="text-xl font-black uppercase tracking-tight">
-          {weekDates[0].toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+        <h2 className="text-3xl font-black uppercase tracking-tight">
+          {weekDates[0].toLocaleDateString('en-US', { month: 'long' })}
         </h2>
         
         <button
@@ -168,7 +168,7 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
           className="px-4 py-2 hover:bg-gray-100 border-2 border-black font-bold"
           aria-label="Next week"
         >
-          Next →
+          Next Month →
         </button>
       </div>
 

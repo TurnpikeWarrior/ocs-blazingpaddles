@@ -1,15 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
+import { Booking } from '../types';
 
 export default function MySessionsPage() {
-  const { user, bookings, isAuthenticated, logout } = useAuth();
+  const { user, bookings, isAuthenticated, logout, removeBooking } = useAuth();
   const router = useRouter();
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
 
   // Protect route
   useEffect(() => {
@@ -18,6 +21,23 @@ export default function MySessionsPage() {
     }
   }, [isAuthenticated, router]);
 
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showCancelModal) {
+        handleCloseCancelModal();
+      }
+    };
+
+    if (showCancelModal) {
+      document.addEventListener('keydown', handleEscKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [showCancelModal]);
+
   if (!user) {
     return null;
   }
@@ -25,6 +45,24 @@ export default function MySessionsPage() {
   const handleLogout = () => {
     logout();
     router.push('/');
+  };
+
+  const handleCancelClick = (booking: Booking) => {
+    setBookingToCancel(booking);
+    setShowCancelModal(true);
+  };
+
+  const handleConfirmCancel = () => {
+    if (bookingToCancel) {
+      removeBooking(bookingToCancel.id);
+      setShowCancelModal(false);
+      setBookingToCancel(null);
+    }
+  };
+
+  const handleCloseCancelModal = () => {
+    setShowCancelModal(false);
+    setBookingToCancel(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -157,8 +195,16 @@ export default function MySessionsPage() {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="text-4xl">{getBookingIcon(booking.type)}</div>
-                      <div className="px-3 py-1 bg-yellow-400 border-2 border-black text-xs font-bold uppercase">
-                        {booking.creditCost} {booking.creditCost === 1 ? 'Credit' : 'Credits'}
+                      <div className="flex flex-col gap-2 items-stretch">
+                        <div className="px-4 py-2 bg-yellow-400 border-2 border-black text-xs font-bold uppercase text-center">
+                          {booking.creditCost} {booking.creditCost === 1 ? 'Credit' : 'Credits'}
+                        </div>
+                        <button
+                          onClick={() => handleCancelClick(booking)}
+                          className="px-4 py-2 bg-red-500 text-black font-bold text-xs uppercase tracking-wide hover:bg-red-600 transition-colors border-2 border-black text-center whitespace-nowrap"
+                        >
+                          Cancel Reservation
+                        </button>
                       </div>
                     </div>
 
@@ -278,6 +324,84 @@ export default function MySessionsPage() {
           )}
         </div>
       </main>
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && bookingToCancel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#faf9f7] border-4 border-black max-w-lg w-full">
+            {/* Modal Header */}
+            <div className="bg-red-500 border-b-4 border-black p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-black uppercase tracking-tight text-black">
+                    Cancel Reservation
+                  </h2>
+                </div>
+                <button
+                  onClick={handleCloseCancelModal}
+                  className="text-3xl font-bold hover:opacity-70 text-black"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Confirmation Message */}
+              <div className="bg-red-50 border-4 border-red-500 p-6">
+                <h3 className="font-black uppercase text-xl mb-4 text-red-900">
+                  Are you sure?
+                </h3>
+                <p className="text-base mb-4 text-red-900">
+                  You are about to cancel <span className="font-bold">"{bookingToCancel.name}"</span>
+                </p>
+                <div className="bg-[#faf9f7] border-2 border-red-300 p-4 space-y-2 text-sm">
+                  <p>
+                    <span className="font-semibold">Date:</span>{' '}
+                    {new Date(bookingToCancel.date).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Time:</span> {formatTime(bookingToCancel.time)}
+                  </p>
+                  {bookingToCancel.courtNumber && (
+                    <p>
+                      <span className="font-semibold">Court:</span> #{bookingToCancel.courtNumber}
+                    </p>
+                  )}
+                  <p className="pt-2 border-t-2 border-red-200">
+                    <span className="font-semibold">Refund Amount:</span>{' '}
+                    <span className="text-lg font-bold text-green-600">
+                      {bookingToCancel.creditCost} {bookingToCancel.creditCost === 1 ? 'Credit' : 'Credits'}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4">
+                <button
+                  onClick={handleCloseCancelModal}
+                  className="flex-1 py-4 bg-[#faf9f7] text-black font-bold text-lg uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
+                >
+                  No, Keep It
+                </button>
+                <button
+                  onClick={handleConfirmCancel}
+                  className="flex-1 py-4 bg-red-500 text-black font-bold text-lg uppercase tracking-wide hover:bg-red-600 transition-colors border-4 border-black"
+                >
+                  Yes, Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </>

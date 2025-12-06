@@ -151,28 +151,24 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
     <div>
       {/* Legend - Outside calendar box, top-right */}
       <div className="flex justify-end mb-4">
-        <div className="flex gap-4 text-xs font-semibold">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-yellow-500 border-2 border-yellow-600 rounded"></div>
-            <span>Court/Class</span>
+          <div className="flex gap-4 text-xs font-semibold">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-yellow-500 border-2 border-yellow-600 rounded"></div>
+              <span>Court/Class</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-300 border-2 border-gray-400 rounded"></div>
+              <span>Reserved</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-[#faf9f7] border-2 border-gray-300 rounded"></div>
+              <span>Available</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-100 border-2 border-gray-300 rounded"></div>
+              <span>Past</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-500 border-2 border-blue-600 rounded"></div>
-            <span>Open Play</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-gray-300 border-2 border-gray-400 rounded"></div>
-            <span>Reserved</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-[#faf9f7] border-2 border-gray-300 rounded"></div>
-            <span>Available</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-gray-100 border-2 border-gray-300 rounded"></div>
-            <span>Past</span>
-          </div>
-        </div>
       </div>
 
       <div className="bg-[#faf9f7] border-4 border-black">
@@ -243,7 +239,6 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
                 const reserved = isReserved(date, time);
                 const userBooking = getUserBooking(date, time);
                 const today = isToday(date);
-                const isOpenPlay = userBooking?.type === 'open-play';
 
                 return (
                   <button
@@ -259,11 +254,7 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
                     `}
                   >
                     {userBooking && (
-                      <div className={`
-                        h-[52px] px-3 rounded-lg font-bold text-xs leading-tight flex items-center justify-center
-                        ${isOpenPlay ? 'bg-blue-500 text-white shadow-md' : 'bg-yellow-500 text-black shadow-md'}
-                        hover:shadow-lg transition-all
-                      `}>
+                      <div className="h-[52px] px-3 rounded-lg font-bold text-xs leading-tight flex items-center justify-center bg-yellow-500 text-black shadow-md hover:shadow-lg transition-all">
                         ✓ {userBooking.name}
                       </div>
                     )}

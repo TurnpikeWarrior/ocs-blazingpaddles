@@ -5,8 +5,7 @@ Before beginning, I will provide you with all of the necessary background inform
 ## Background 
 - The business wants a very intuitive website for people to do any of 3 things: 
     - To log in to book a room and time slot for a court to play pickleball.
-    - To join classes. 
-    - To sign up for open-play based on calendar availability.  
+    - To join classes.
 - You are senior full-stack developer and UI/UX developer.  
 
 ## Coding Preferences

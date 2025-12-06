@@ -105,7 +105,7 @@ export default function MemberPage() {
       return;
     }
 
-    const creditCost = CREDIT_COSTS[bookingType];
+    const creditCost = CREDIT_COSTS.court;
 
     if (user.credits < creditCost) {
       setErrorMessage(`Insufficient credits. You need ${creditCost} credits for this booking.`);
@@ -113,26 +113,16 @@ export default function MemberPage() {
       return;
     }
 
-    if (bookingType === 'class' && !selectedClass) {
-      setErrorMessage('Please select a class.');
-      setShowErrorModal(true);
-      return;
-    }
-
     // Create booking
-    const bookingName = bookingType === 'court' 
-      ? `Court ${courtNumber}`
-      : bookingType === 'class'
-      ? AVAILABLE_CLASSES.find(c => c.id === selectedClass)?.name || 'Class'
-      : 'Open Play';
+    const bookingName = `Court ${courtNumber}`;
 
     addBooking({
       date: selectedDate.toISOString().split('T')[0],
       time: selectedTime,
-      type: bookingType,
+      type: 'court',
       name: bookingName,
       creditCost,
-      courtNumber: bookingType === 'court' ? courtNumber : undefined,
+      courtNumber: courtNumber,
     });
 
     // Show success message
@@ -144,7 +134,6 @@ export default function MemberPage() {
     setSelectedTime(null);
     setSelectedDate(null);
     setCourtNumber(1);
-    setSelectedClass('');
   };
 
   const formatDate = (date: Date) => {
@@ -227,82 +216,34 @@ export default function MemberPage() {
                 <label className="block text-sm font-bold uppercase tracking-wide mb-3">
                   Booking Type
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setBookingType('court')}
-                    className={`py-3 px-4 font-bold text-sm uppercase tracking-wide border-2 transition-all ${
-                      bookingType === 'court'
-                        ? 'bg-black text-white border-black'
-                        : 'bg-[#faf9f7] text-black border-black hover:bg-gray-100'
-                    }`}
+                    className="py-3 px-4 font-bold text-sm uppercase tracking-wide border-2 transition-all bg-black text-white border-black"
                   >
                     Court<br/>
                     <span className="text-xs">3 credits</span>
                   </button>
-                  <button
-                    onClick={() => setBookingType('class')}
-                    className={`py-3 px-4 font-bold text-sm uppercase tracking-wide border-2 transition-all ${
-                      bookingType === 'class'
-                        ? 'bg-black text-white border-black'
-                        : 'bg-[#faf9f7] text-black border-black hover:bg-gray-100'
-                    }`}
-                  >
-                    Class<br/>
-                    <span className="text-xs">1 credit</span>
-                  </button>
-                  <button
-                    onClick={() => setBookingType('open-play')}
-                    className={`py-3 px-4 font-bold text-sm uppercase tracking-wide border-2 transition-all ${
-                      bookingType === 'open-play'
-                        ? 'bg-black text-white border-black'
-                        : 'bg-[#faf9f7] text-black border-black hover:bg-gray-100'
-                    }`}
-                  >
-                    Open Play<br/>
-                    <span className="text-xs">1 credit</span>
-                  </button>
                 </div>
               </div>
 
-              {/* Court Number (only for court bookings) */}
-              {bookingType === 'court' && (
-                <div>
-                  <label className="block text-sm font-bold uppercase tracking-wide mb-3">
-                    Court Number
-                  </label>
-                  <select
-                    value={courtNumber}
-                    onChange={(e) => setCourtNumber(Number(e.target.value))}
-                    className="w-full px-4 py-3 border-2 border-black focus:outline-none focus:ring-2 focus:ring-yellow-400 font-semibold"
-                  >
-                    <option value={1}>Court 1</option>
-                    <option value={2}>Court 2</option>
-                    <option value={3}>Court 3</option>
-                    <option value={4}>Court 4</option>
-                  </select>
-                </div>
-              )}
-
-              {/* Class Selector (only for class bookings) */}
-              {bookingType === 'class' && (
-                <div>
-                  <label className="block text-sm font-bold uppercase tracking-wide mb-3">
-                    Select Class
-                  </label>
-                  <select
-                    value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-black focus:outline-none focus:ring-2 focus:ring-yellow-400 font-semibold"
-                  >
-                    <option value="">Choose a class...</option>
-                    {AVAILABLE_CLASSES.map((cls) => (
-                      <option key={cls.id} value={cls.id}>
-                        {cls.name} - {cls.time}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              {/* Court Number */}
+              {/* Court Number */}
+              <div>
+                <label className="block text-sm font-bold uppercase tracking-wide mb-3">
+                  Court Number
+                </label>
+                <select
+                  value={courtNumber}
+                  onChange={(e) => setCourtNumber(Number(e.target.value))}
+                  className="w-full px-4 py-3 border-2 border-black focus:outline-none focus:ring-2 focus:ring-yellow-400 font-semibold"
+                >
+                  <option value={1}>Court 1</option>
+                  <option value={2}>Court 2</option>
+                  <option value={3}>Court 3</option>
+                  <option value={4}>Court 4</option>
+                </select>
+              </div>
 
               {/* Booking Summary */}
               <div className="bg-gray-50 border-2 border-gray-300 p-4">
@@ -310,8 +251,8 @@ export default function MemberPage() {
                 <div className="space-y-1 text-sm">
                   <p><span className="font-semibold">Date:</span> {formatDate(selectedDate)}</p>
                   <p><span className="font-semibold">Time:</span> {formatTime(selectedTime)}</p>
-                  <p><span className="font-semibold">Type:</span> {bookingType === 'court' ? `Court ${courtNumber}` : bookingType === 'class' ? 'Class' : 'Open Play'}</p>
-                  <p><span className="font-semibold">Cost:</span> {CREDIT_COSTS[bookingType]} Credits</p>
+                  <p><span className="font-semibold">Type:</span> Court {courtNumber}</p>
+                  <p><span className="font-semibold">Cost:</span> {CREDIT_COSTS.court} Credits</p>
                   <p><span className="font-semibold">Your Credits:</span> {user.credits}</p>
                 </div>
               </div>
@@ -326,10 +267,9 @@ export default function MemberPage() {
                 </button>
                 <button
                   onClick={handleBooking}
-                  disabled={bookingType === 'class' && !selectedClass}
-                  className="flex-1 py-4 bg-yellow-400 text-black font-bold text-lg uppercase tracking-wide hover:bg-yellow-300 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed border-4 border-black"
+                  className="flex-1 py-4 bg-yellow-400 text-black font-bold text-lg uppercase tracking-wide hover:bg-yellow-300 transition-colors border-4 border-black"
                 >
-                  Confirm ({CREDIT_COSTS[bookingType]} Credits)
+                  Confirm ({CREDIT_COSTS.court} Credits)
                 </button>
               </div>
             </div>

@@ -109,8 +109,6 @@ export default function MySessionsPage() {
         return '🏓';
       case 'class':
         return '👨‍🏫';
-      case 'open-play':
-        return '🎉';
       default:
         return '📅';
     }
@@ -122,8 +120,6 @@ export default function MySessionsPage() {
         return 'Court Reservation';
       case 'class':
         return 'Class';
-      case 'open-play':
-        return 'Open Play';
       default:
         return 'Booking';
     }

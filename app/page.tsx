@@ -154,19 +154,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Open Play */}
-              <div className="bg-white border-2 border-black p-8">
-                <div className="text-4xl mb-4">🎉</div>
-                <h3 className="text-2xl font-bold mb-3 uppercase tracking-wide">
-                  Open Play
-                </h3>
-                <p className="text-gray-700 mb-4 leading-relaxed">
-                  Join community play sessions and meet fellow pickleball enthusiasts.
-                </p>
-                <div className="text-sm font-bold text-yellow-600 uppercase">
-                  1 Credit
-                </div>
-              </div>
             </div>
           </div>
         </section>

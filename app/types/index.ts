@@ -7,7 +7,7 @@ export interface User {
 }
 
 // Booking Types
-export type BookingType = 'court' | 'class' | 'open-play';
+export type BookingType = 'court' | 'class';
 
 export interface TimeSlot {
   id: string;

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Blazin' Paddles - Premier Pickleball Courts & Classes",
-  description: "Book pickleball courts, join classes, and sign up for open play at Blazin' Paddles. Your premier destination for pickleball.",
+  description: "Book pickleball courts and join classes at Blazin' Paddles. Your premier destination for pickleball.",
   keywords: ["pickleball", "court booking", "pickleball classes", "sports facility"],
 };
 

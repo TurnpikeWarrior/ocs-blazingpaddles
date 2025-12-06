@@ -60,7 +60,6 @@ export function generateTimeSlots() {
 export const CREDIT_COSTS = {
   court: 3,
   class: 1,
-  'open-play': 1,
 };
 
 // Mock classes available

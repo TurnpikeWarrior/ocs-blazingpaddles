@@ -4,23 +4,21 @@ import Link from 'next/link';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { useAuth } from './context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
-  const router = useRouter();
+  const { isAuthenticated, user, logout } = useAuth();
 
-  // Redirect authenticated users to member page
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/member');
-    }
-  }, [isAuthenticated, router]);
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <>
-      <Navbar />
+      <Navbar 
+        isAuthenticated={isAuthenticated}
+        userCredits={user?.credits}
+        onLogout={handleLogout}
+      />
       
       <main className="flex-grow">
         {/* Hero Section */}
@@ -41,12 +39,21 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/login"
-                  className="px-8 py-4 bg-black text-white text-lg font-bold uppercase tracking-wide hover:bg-gray-800 transition-colors text-center border-2 border-black"
-                >
-                  Member Login
-                </Link>
+                {!isAuthenticated ? (
+                  <Link
+                    href="/login"
+                    className="px-8 py-4 bg-black text-white text-lg font-bold uppercase tracking-wide hover:bg-gray-800 transition-colors text-center border-2 border-black"
+                  >
+                    Member Login
+                  </Link>
+                ) : (
+                  <Link
+                    href="/member"
+                    className="px-8 py-4 bg-black text-white text-lg font-bold uppercase tracking-wide hover:bg-gray-800 transition-colors text-center border-2 border-black"
+                  >
+                    Reserve A Court
+                  </Link>
+                )}
                 <a
                   href="#how-it-works"
                   className="px-8 py-4 bg-white text-black text-lg font-bold uppercase tracking-wide hover:bg-gray-100 transition-colors text-center border-2 border-black"

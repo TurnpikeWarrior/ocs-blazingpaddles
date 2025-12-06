@@ -4,22 +4,25 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import Calendar from '../components/Calendar';
+import WeeklyCalendar from '../components/WeeklyCalendar';
 import { useAuth } from '../context/AuthContext';
-import { generateTimeSlots, CREDIT_COSTS, AVAILABLE_CLASSES } from '../utils/mockData';
-import { BookingType } from '../types';
+import { CREDIT_COSTS, AVAILABLE_CLASSES } from '../utils/mockData';
+import { BookingType, Booking } from '../types';
 
 export default function MemberPage() {
-  const { user, isAuthenticated, logout, addBooking } = useAuth();
+  const { user, isAuthenticated, logout, addBooking, removeBooking, bookings } = useAuth();
   const router = useRouter();
   
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingType, setBookingType] = useState<BookingType>('court');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [courtNumber, setCourtNumber] = useState<number>(1);
-  const [timeSlots, setTimeSlots] = useState(generateTimeSlots());
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
 
   // Protect route
   useEffect(() => {
@@ -28,12 +31,6 @@ export default function MemberPage() {
     }
   }, [isAuthenticated, router]);
 
-  // Regenerate time slots when date changes
-  useEffect(() => {
-    setTimeSlots(generateTimeSlots());
-    setSelectedTime(null);
-  }, [selectedDate]);
-
   if (!user) {
     return null;
   }
@@ -41,6 +38,37 @@ export default function MemberPage() {
   const handleLogout = () => {
     logout();
     router.push('/');
+  };
+
+  const handleTimeSlotClick = (date: Date, time: string) => {
+    setSelectedDate(date);
+    setSelectedTime(time);
+    setShowBookingModal(true);
+  };
+
+  const handleUserBookingClick = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowDetailsModal(true);
+    setShowCancelConfirmation(false);
+  };
+
+  const handleCancelBookingClick = () => {
+    setShowCancelConfirmation(true);
+  };
+
+  const handleConfirmCancellation = () => {
+    if (!selectedBooking) return;
+
+    removeBooking(selectedBooking.id);
+    setShowDetailsModal(false);
+    setShowCancelConfirmation(false);
+    setSelectedBooking(null);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
+
+  const handleCancelConfirmation = () => {
+    setShowCancelConfirmation(false);
   };
 
   const handleBooking = () => {
@@ -79,10 +107,12 @@ export default function MemberPage() {
 
     // Show success message
     setShowSuccess(true);
+    setShowBookingModal(false);
     setTimeout(() => setShowSuccess(false), 3000);
 
     // Reset form
     setSelectedTime(null);
+    setSelectedDate(null);
     setCourtNumber(1);
     setSelectedClass('');
   };
@@ -94,6 +124,10 @@ export default function MemberPage() {
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  const formatTime = (time: string) => {
+    return time;
   };
 
   return (
@@ -112,43 +146,54 @@ export default function MemberPage() {
               Welcome back, {user.name}!
             </h1>
             <p className="text-xl text-gray-600">
-              Reserve your court time or join a class below.
+              Select a date and time from the calendar below to book your court.
             </p>
           </div>
 
           {/* Success Message */}
           {showSuccess && (
             <div className="mb-6 p-4 bg-green-100 border-4 border-green-500 text-green-800 font-bold text-center animate-pulse">
-              ✓ Booking confirmed! Check "My Sessions" to view your reservations.
+              ✓ {selectedBooking ? 'Booking cancelled! Credits have been refunded.' : 'Booking confirmed! Check "My Sessions" to view your reservations.'}
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Calendar Section */}
-            <div>
-              <h2 className="text-2xl font-black uppercase tracking-tight mb-4">
-                Select Date
-              </h2>
-              <Calendar selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+          {/* Weekly Calendar */}
+          <WeeklyCalendar 
+            onTimeSlotClick={handleTimeSlotClick}
+            onUserBookingClick={handleUserBookingClick}
+            userBookings={bookings}
+          />
+        </div>
+      </main>
+
+      {/* Booking Modal */}
+      {showBookingModal && selectedDate && selectedTime && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white border-4 border-black max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="bg-yellow-400 border-b-4 border-black p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-black uppercase tracking-tight mb-2">
+                    Book Your Session
+                  </h2>
+                  <p className="font-bold">
+                    {formatDate(selectedDate)} at {formatTime(selectedTime)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowBookingModal(false)}
+                  className="text-3xl font-bold hover:opacity-70"
+                >
+                  ×
+                </button>
+              </div>
             </div>
 
-            {/* Booking Section */}
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-black uppercase tracking-tight mb-4">
-                  Book Your Session
-                </h2>
-                
-                {selectedDate && (
-                  <div className="bg-yellow-100 border-2 border-yellow-400 p-4 mb-4">
-                    <p className="font-bold text-sm">Selected Date:</p>
-                    <p className="text-lg font-semibold">{formatDate(selectedDate)}</p>
-                  </div>
-                )}
-              </div>
-
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
               {/* Booking Type Selector */}
-              <div className="bg-white border-4 border-black p-6">
+              <div>
                 <label className="block text-sm font-bold uppercase tracking-wide mb-3">
                   Booking Type
                 </label>
@@ -191,7 +236,7 @@ export default function MemberPage() {
 
               {/* Court Number (only for court bookings) */}
               {bookingType === 'court' && (
-                <div className="bg-white border-4 border-black p-6">
+                <div>
                   <label className="block text-sm font-bold uppercase tracking-wide mb-3">
                     Court Number
                   </label>
@@ -210,7 +255,7 @@ export default function MemberPage() {
 
               {/* Class Selector (only for class bookings) */}
               {bookingType === 'class' && (
-                <div className="bg-white border-4 border-black p-6">
+                <div>
                   <label className="block text-sm font-bold uppercase tracking-wide mb-3">
                     Select Class
                   </label>
@@ -229,54 +274,178 @@ export default function MemberPage() {
                 </div>
               )}
 
-              {/* Time Slots */}
-              <div className="bg-white border-4 border-black p-6">
-                <label className="block text-sm font-bold uppercase tracking-wide mb-3">
-                  Select Time
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-96 overflow-y-auto">
-                  {timeSlots.map((slot) => (
-                    <button
-                      key={slot.id}
-                      onClick={() => setSelectedTime(slot.time)}
-                      disabled={!slot.available}
-                      className={`py-3 px-4 font-semibold text-sm border-2 transition-all ${
-                        !slot.available
-                          ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed'
-                          : selectedTime === slot.time
-                          ? 'bg-black text-white border-black'
-                          : 'bg-white text-black border-black hover:bg-gray-100 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
-                      }`}
-                    >
-                      {slot.time}
-                    </button>
-                  ))}
+              {/* Booking Summary */}
+              <div className="bg-gray-50 border-2 border-gray-300 p-4">
+                <h3 className="font-bold uppercase text-sm mb-2">Booking Summary</h3>
+                <div className="space-y-1 text-sm">
+                  <p><span className="font-semibold">Date:</span> {formatDate(selectedDate)}</p>
+                  <p><span className="font-semibold">Time:</span> {formatTime(selectedTime)}</p>
+                  <p><span className="font-semibold">Type:</span> {bookingType === 'court' ? `Court ${courtNumber}` : bookingType === 'class' ? 'Class' : 'Open Play'}</p>
+                  <p><span className="font-semibold">Cost:</span> {CREDIT_COSTS[bookingType]} Credits</p>
+                  <p><span className="font-semibold">Your Credits:</span> {user.credits}</p>
                 </div>
-                <p className="mt-3 text-xs text-gray-600 font-semibold">
-                  Operating hours: 7:00 AM - 8:00 PM
-                </p>
               </div>
 
-              {/* Confirm Booking Button */}
-              <button
-                onClick={handleBooking}
-                disabled={!selectedDate || !selectedTime}
-                className="w-full py-4 bg-yellow-400 text-black font-bold text-lg uppercase tracking-wide hover:bg-yellow-300 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed border-4 border-black"
-              >
-                Confirm Booking ({CREDIT_COSTS[bookingType]} Credits)
-              </button>
-
-              {/* Purchase Credits */}
-              <div className="bg-white border-2 border-black p-4 text-center">
-                <p className="text-sm font-semibold mb-2">Need more credits?</p>
-                <button className="text-sm font-bold text-black underline hover:no-underline">
-                  Purchase Credits →
+              {/* Action Buttons */}
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowBookingModal(false)}
+                  className="flex-1 py-4 bg-white text-black font-bold text-lg uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBooking}
+                  disabled={bookingType === 'class' && !selectedClass}
+                  className="flex-1 py-4 bg-yellow-400 text-black font-bold text-lg uppercase tracking-wide hover:bg-yellow-300 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed border-4 border-black"
+                >
+                  Confirm ({CREDIT_COSTS[bookingType]} Credits)
                 </button>
               </div>
             </div>
           </div>
         </div>
-      </main>
+      )}
+
+      {/* Booking Details Modal */}
+      {showDetailsModal && selectedBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white border-4 border-black max-w-lg w-full">
+            {/* Modal Header */}
+            <div className={`border-b-4 border-black p-6 ${showCancelConfirmation ? 'bg-red-500' : 'bg-yellow-400'}`}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className={`text-3xl font-black uppercase tracking-tight mb-2 ${showCancelConfirmation ? 'text-white' : ''}`}>
+                    {showCancelConfirmation ? 'Confirm Cancellation' : 'Your Reservation'}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    setSelectedBooking(null);
+                    setShowCancelConfirmation(false);
+                  }}
+                  className={`text-3xl font-bold hover:opacity-70 ${showCancelConfirmation ? 'text-white' : ''}`}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {!showCancelConfirmation ? (
+                <>
+                  {/* Booking Details */}
+                  <div className="bg-gray-50 border-2 border-gray-300 p-4">
+                    <h3 className="font-bold uppercase text-sm mb-3">Reservation Details</h3>
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        <span className="font-semibold">Booking:</span>{' '}
+                        <span className="text-lg font-bold">{selectedBooking.name}</span>
+                      </p>
+                      <p>
+                        <span className="font-semibold">Date:</span>{' '}
+                        {new Date(selectedBooking.date).toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Time:</span> {selectedBooking.time}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Type:</span>{' '}
+                        <span className="capitalize">{selectedBooking.type.replace('-', ' ')}</span>
+                      </p>
+                      <p>
+                        <span className="font-semibold">Credit Cost:</span> {selectedBooking.creditCost} {selectedBooking.creditCost === 1 ? 'Credit' : 'Credits'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Warning Message */}
+                  <div className="bg-red-50 border-2 border-red-300 p-4">
+                    <p className="text-sm text-red-800">
+                      <span className="font-bold">⚠️ Cancellation Policy:</span> If you cancel this reservation, 
+                      {selectedBooking.creditCost} {selectedBooking.creditCost === 1 ? 'credit' : 'credits'} will be refunded to your account.
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => {
+                        setShowDetailsModal(false);
+                        setSelectedBooking(null);
+                      }}
+                      className="flex-1 py-4 bg-white text-black font-bold text-lg uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={handleCancelBookingClick}
+                      className="flex-1 py-4 bg-red-500 text-white font-bold text-lg uppercase tracking-wide hover:bg-red-600 transition-colors border-4 border-black"
+                    >
+                      Cancel Booking
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Cancellation Confirmation */}
+                  <div className="bg-red-50 border-4 border-red-500 p-6">
+                    <h3 className="font-black uppercase text-xl mb-4 text-red-900">
+                      Are you sure?
+                    </h3>
+                    <p className="text-base mb-4 text-red-900">
+                      You are about to cancel <span className="font-bold">"{selectedBooking.name}"</span>
+                    </p>
+                    <div className="bg-white border-2 border-red-300 p-4 space-y-2 text-sm">
+                      <p>
+                        <span className="font-semibold">Date:</span>{' '}
+                        {new Date(selectedBooking.date).toLocaleDateString('en-US', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Time:</span> {selectedBooking.time}
+                      </p>
+                      <p className="pt-2 border-t-2 border-red-200">
+                        <span className="font-semibold">Refund Amount:</span>{' '}
+                        <span className="text-lg font-bold text-green-600">
+                          {selectedBooking.creditCost} {selectedBooking.creditCost === 1 ? 'Credit' : 'Credits'}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Confirmation Action Buttons */}
+                  <div className="flex gap-4">
+                    <button
+                      onClick={handleCancelConfirmation}
+                      className="flex-1 py-4 bg-white text-black font-bold text-lg uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
+                    >
+                      No, Keep It
+                    </button>
+                    <button
+                      onClick={handleConfirmCancellation}
+                      className="flex-1 py-4 bg-red-500 text-white font-bold text-lg uppercase tracking-wide hover:bg-red-600 transition-colors border-4 border-black"
+                    >
+                      Yes, Cancel
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </>

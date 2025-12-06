@@ -11,6 +11,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   addBooking: (booking: Omit<Booking, 'id' | 'userId'>) => void;
+  removeBooking: (bookingId: string) => void;
   updateUserCredits: (credits: number) => void;
 }
 
@@ -73,6 +74,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('blazin-user', JSON.stringify(updatedUser));
   };
 
+  const removeBooking = (bookingId: string) => {
+    if (!user) return;
+
+    const bookingToRemove = bookings.find(b => b.id === bookingId);
+    if (!bookingToRemove) return;
+
+    // Remove the booking
+    const updatedBookings = bookings.filter(b => b.id !== bookingId);
+    setBookings(updatedBookings);
+    localStorage.setItem('blazin-bookings', JSON.stringify(updatedBookings));
+
+    // Refund credits
+    const updatedUser = { ...user, credits: user.credits + bookingToRemove.creditCost };
+    setUser(updatedUser);
+    localStorage.setItem('blazin-user', JSON.stringify(updatedUser));
+  };
+
   const updateUserCredits = (credits: number) => {
     if (!user) return;
     
@@ -90,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         addBooking,
+        removeBooking,
         updateUserCredits,
       }}
     >

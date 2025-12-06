@@ -148,29 +148,56 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
   const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
   return (
-    <div className="bg-white border-4 border-black">
-      {/* Header with navigation */}
-      <div className="flex items-center justify-between p-4 border-b-2 border-black">
-        <button
-          onClick={previousWeek}
-          className="px-4 py-2 hover:bg-gray-100 border-2 border-black font-bold"
-          aria-label="Previous week"
-        >
-          ← Previous Month
-        </button>
-        
-        <h2 className="text-3xl font-black uppercase tracking-tight">
-          {weekDates[0].toLocaleDateString('en-US', { month: 'long' })}
-        </h2>
-        
-        <button
-          onClick={nextWeek}
-          className="px-4 py-2 hover:bg-gray-100 border-2 border-black font-bold"
-          aria-label="Next week"
-        >
-          Next Month →
-        </button>
+    <div>
+      {/* Legend - Outside calendar box, top-right */}
+      <div className="flex justify-end mb-4">
+        <div className="flex gap-4 text-xs font-semibold">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-yellow-500 border-2 border-yellow-600 rounded"></div>
+            <span>Court/Class</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-500 border-2 border-blue-600 rounded"></div>
+            <span>Open Play</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-300 border-2 border-gray-400 rounded"></div>
+            <span>Reserved</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-[#faf9f7] border-2 border-gray-300 rounded"></div>
+            <span>Available</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-100 border-2 border-gray-300 rounded"></div>
+            <span>Past</span>
+          </div>
+        </div>
       </div>
+
+      <div className="bg-[#faf9f7] border-4 border-black">
+        {/* Header with navigation */}
+        <div className="flex items-center justify-between p-4 border-b-2 border-black">
+          <button
+            onClick={previousWeek}
+            className="px-4 py-2 hover:bg-gray-100 border-2 border-black font-bold"
+            aria-label="Previous week"
+          >
+            ← Previous Month
+          </button>
+          
+          <h2 className="text-3xl font-black uppercase tracking-tight">
+            {weekDates[0].toLocaleDateString('en-US', { month: 'long' })}
+          </h2>
+          
+          <button
+            onClick={nextWeek}
+            className="px-4 py-2 hover:bg-gray-100 border-2 border-black font-bold"
+            aria-label="Next week"
+          >
+            Next Month →
+          </button>
+        </div>
 
       {/* Calendar Grid */}
       <div className="overflow-x-auto">
@@ -206,7 +233,7 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
           {timeSlots.map((time, timeIndex) => (
             <div key={time} className="grid grid-cols-8 border-b border-gray-300 last:border-b-0">
               {/* Time label */}
-              <div className="p-3 text-xs font-semibold text-gray-500 border-r-2 border-black flex items-start">
+              <div className="p-3 text-base font-bold text-gray-700 border-r-2 border-black flex items-center justify-center">
                 {time}
               </div>
 
@@ -216,6 +243,7 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
                 const reserved = isReserved(date, time);
                 const userBooking = getUserBooking(date, time);
                 const today = isToday(date);
+                const isOpenPlay = userBooking?.type === 'open-play';
 
                 return (
                   <button
@@ -223,23 +251,25 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
                     onClick={() => handleTimeSlotClick(date, time)}
                     disabled={past || (reserved && !userBooking)}
                     className={`
-                      min-h-[60px] p-2 text-center text-xs font-semibold border-r border-gray-300 last:border-r-0
-                      transition-colors relative
+                      min-h-[60px] p-1 text-center text-xs font-semibold border-r border-gray-300 last:border-r-0
+                      transition-all relative
                       ${today ? 'border-r-2 border-yellow-400' : ''}
                       ${past ? 'bg-gray-100 cursor-not-allowed text-gray-400' : ''}
-                      ${userBooking ? 'bg-yellow-400 border-2 border-yellow-600 cursor-pointer hover:bg-yellow-300' : ''}
                       ${!past && !reserved && !userBooking ? 'hover:bg-yellow-100 cursor-pointer' : ''}
-                      ${reserved && !past && !userBooking ? 'bg-gray-200 border-2 border-gray-400 cursor-not-allowed' : ''}
                     `}
                   >
                     {userBooking && (
-                      <div className="text-xs leading-tight font-bold">
+                      <div className={`
+                        h-[52px] px-3 rounded-lg font-bold text-xs leading-tight flex items-center justify-center
+                        ${isOpenPlay ? 'bg-blue-500 text-white shadow-md' : 'bg-yellow-500 text-black shadow-md'}
+                        hover:shadow-lg transition-all
+                      `}>
                         ✓ {userBooking.name}
                       </div>
                     )}
                     {reserved && !past && !userBooking && (
-                      <div className="text-xs leading-tight">
-                        All Courts<br />Reserved
+                      <div className="h-[52px] px-3 rounded-lg bg-gray-300 text-gray-700 font-semibold text-xs leading-tight shadow-sm flex items-center justify-center">
+                        <div>All Courts<br />Reserved</div>
                       </div>
                     )}
                   </button>
@@ -251,28 +281,11 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
       </div>
 
       {/* Footer note */}
-      <div className="p-4 border-t-2 border-black bg-gray-50">
-        <p className="text-sm italic text-gray-600 text-center mb-3">
+      <div className="p-4 border-t-2 border-black bg-gray-50 text-center">
+        <p className="text-sm italic text-gray-600">
           Click on any available slot to open the booking page.
         </p>
-        <div className="flex justify-center gap-6 text-xs font-semibold">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-yellow-400 border-2 border-yellow-600"></div>
-            <span>Your Bookings</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-gray-200 border-2 border-gray-400"></div>
-            <span>Reserved</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-[#faf9f7] border-2 border-gray-300"></div>
-            <span>Available</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-gray-100 border-2 border-gray-300"></div>
-            <span>Past</span>
-          </div>
-        </div>
+      </div>
       </div>
     </div>
   );

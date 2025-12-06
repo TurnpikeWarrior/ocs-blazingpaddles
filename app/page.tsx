@@ -112,7 +112,7 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section className="py-20 bg-gray-50 border-y-2 border-black">
+        <section className="py-20 bg-[#f5f4f2] border-y-2 border-black">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-4xl md:text-5xl font-black text-center mb-16 uppercase tracking-tight">
               What We Offer

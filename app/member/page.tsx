@@ -138,7 +138,7 @@ export default function MemberPage() {
         onLogout={handleLogout}
       />
       
-      <main className="flex-grow bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <main className="flex-grow bg-[#f5f4f2] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Welcome Header */}
           <div className="mb-8">
@@ -169,7 +169,7 @@ export default function MemberPage() {
       {/* Booking Modal */}
       {showBookingModal && selectedDate && selectedTime && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white border-4 border-black max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#faf9f7] border-4 border-black max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="bg-yellow-400 border-b-4 border-black p-6">
               <div className="flex justify-between items-start">
@@ -203,7 +203,7 @@ export default function MemberPage() {
                     className={`py-3 px-4 font-bold text-sm uppercase tracking-wide border-2 transition-all ${
                       bookingType === 'court'
                         ? 'bg-black text-white border-black'
-                        : 'bg-white text-black border-black hover:bg-gray-100'
+                        : 'bg-[#faf9f7] text-black border-black hover:bg-gray-100'
                     }`}
                   >
                     Court<br/>
@@ -214,7 +214,7 @@ export default function MemberPage() {
                     className={`py-3 px-4 font-bold text-sm uppercase tracking-wide border-2 transition-all ${
                       bookingType === 'class'
                         ? 'bg-black text-white border-black'
-                        : 'bg-white text-black border-black hover:bg-gray-100'
+                        : 'bg-[#faf9f7] text-black border-black hover:bg-gray-100'
                     }`}
                   >
                     Class<br/>
@@ -225,7 +225,7 @@ export default function MemberPage() {
                     className={`py-3 px-4 font-bold text-sm uppercase tracking-wide border-2 transition-all ${
                       bookingType === 'open-play'
                         ? 'bg-black text-white border-black'
-                        : 'bg-white text-black border-black hover:bg-gray-100'
+                        : 'bg-[#faf9f7] text-black border-black hover:bg-gray-100'
                     }`}
                   >
                     Open Play<br/>
@@ -310,7 +310,7 @@ export default function MemberPage() {
       {/* Booking Details Modal */}
       {showDetailsModal && selectedBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white border-4 border-black max-w-lg w-full">
+          <div className="bg-[#faf9f7] border-4 border-black max-w-lg w-full">
             {/* Modal Header */}
             <div className={`border-b-4 border-black p-6 ${showCancelConfirmation ? 'bg-red-500' : 'bg-yellow-400'}`}>
               <div className="flex justify-between items-start">
@@ -403,7 +403,7 @@ export default function MemberPage() {
                     <p className="text-base mb-4 text-red-900">
                       You are about to cancel <span className="font-bold">"{selectedBooking.name}"</span>
                     </p>
-                    <div className="bg-white border-2 border-red-300 p-4 space-y-2 text-sm">
+                    <div className="bg-[#faf9f7] border-2 border-red-300 p-4 space-y-2 text-sm">
                       <p>
                         <span className="font-semibold">Date:</span>{' '}
                         {new Date(selectedBooking.date).toLocaleDateString('en-US', { 

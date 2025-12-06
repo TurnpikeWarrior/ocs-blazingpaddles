@@ -13,7 +13,7 @@ Before beginning, I will provide you with all of the necessary background inform
 - Next.js, React, Tailwind, and Vercel 
 - Later we will use Supabase for the database 
 
-## Functionality 
+## Functionality
 - The application will be composed of three mobile responsive pages.  
 - The application will have a calendar functionality to let people see which time slot is not available or available. 
 - The application will have user login authentication. 

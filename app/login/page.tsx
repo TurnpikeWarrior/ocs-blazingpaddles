@@ -42,10 +42,10 @@ export default function LoginPage() {
     <>
       <Navbar />
       
-      <main className="flex-grow bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <main className="flex-grow bg-[#f5f4f2] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full">
           {/* Login Card */}
-          <div className="bg-white border-4 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="bg-[#faf9f7] border-4 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div className="mb-8">
               <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
                 Member Login

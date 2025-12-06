@@ -45,7 +45,7 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
   // Show loading state until mounted
   if (!mounted || !currentWeekStart) {
     return (
-      <div className="bg-white border-4 border-black">
+      <div className="bg-[#faf9f7] border-4 border-black">
         <div className="p-8 text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-4 border-black"></div>
           <p className="mt-4 font-bold">Loading calendar...</p>
@@ -56,8 +56,8 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
 
   // Time slots from 8 AM to 8 PM
   const timeSlots = [
-    '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', 
-    '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM'
+    '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', 
+    '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'
   ];
 
   const previousWeek = () => {
@@ -97,8 +97,8 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
     if (date >= tomorrow) return false;
     
     // If it's today, check the time
-    // Parse the time string (e.g., "8 AM", "1 PM")
-    const timeMatch = time.match(/(\d+)\s*(AM|PM)/i);
+    // Parse the time string (e.g., "8:00 AM", "1:00 PM", "8 AM", "1 PM")
+    const timeMatch = time.match(/(\d+)(?::\d+)?\s*(AM|PM)/i);
     if (!timeMatch) return false;
     
     let hour = parseInt(timeMatch[1]);
@@ -265,7 +265,7 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
             <span>Reserved</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-white border-2 border-gray-300"></div>
+            <div className="w-4 h-4 bg-[#faf9f7] border-2 border-gray-300"></div>
             <span>Available</span>
           </div>
           <div className="flex items-center gap-2">

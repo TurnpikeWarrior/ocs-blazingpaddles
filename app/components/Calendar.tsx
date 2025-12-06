@@ -77,7 +77,7 @@ export default function Calendar({ selectedDate, onDateSelect }: CalendarProps) 
   }
 
   return (
-    <div className="bg-white border-4 border-black p-6">
+    <div className="bg-[#faf9f7] border-4 border-black p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button
@@ -130,7 +130,7 @@ export default function Calendar({ selectedDate, onDateSelect }: CalendarProps) 
                 aspect-square p-2 text-center font-semibold border-2 transition-all
                 ${past ? 'border-gray-200 text-gray-300 cursor-not-allowed' : 'border-black'}
                 ${today && !selected ? 'bg-yellow-200 border-yellow-400' : ''}
-                ${selected ? 'bg-black text-white border-black' : 'bg-white hover:bg-gray-100'}
+                ${selected ? 'bg-black text-white border-black' : 'bg-[#faf9f7] hover:bg-gray-100'}
                 ${!past && !selected ? 'hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : ''}
               `}
             >
@@ -151,7 +151,7 @@ export default function Calendar({ selectedDate, onDateSelect }: CalendarProps) 
           <span className="font-semibold">Selected</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-white border-2 border-gray-200" />
+          <div className="w-4 h-4 bg-[#faf9f7] border-2 border-gray-200" />
           <span className="font-semibold text-gray-400">Past</span>
         </div>
       </div>

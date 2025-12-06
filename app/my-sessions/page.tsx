@@ -37,6 +37,28 @@ export default function MySessionsPage() {
     });
   };
 
+  const formatDateShort = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'numeric', 
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    // Ensure time is in HH:MM format
+    // Handles both "8 AM" and "8:00 AM" formats
+    const match = timeString.match(/(\d+)(?::(\d+))?\s*(AM|PM)/i);
+    if (!match) return timeString;
+    
+    const hour = match[1];
+    const minutes = match[2] || '00';
+    const period = match[3].toUpperCase();
+    
+    return `${hour}:${minutes} ${period}`;
+  };
+
   const getBookingIcon = (type: string) => {
     switch (type) {
       case 'court':
@@ -88,7 +110,7 @@ export default function MySessionsPage() {
         onLogout={handleLogout}
       />
       
-      <main className="flex-grow bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <main className="flex-grow bg-[#f5f4f2] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
@@ -102,7 +124,7 @@ export default function MySessionsPage() {
 
           {/* No Bookings State */}
           {bookings.length === 0 && (
-            <div className="bg-white border-4 border-black p-12 text-center">
+            <div className="bg-[#faf9f7] border-4 border-black p-12 text-center">
               <div className="text-6xl mb-4">📅</div>
               <h2 className="text-2xl font-bold mb-3 uppercase tracking-wide">
                 No Sessions Yet
@@ -131,7 +153,7 @@ export default function MySessionsPage() {
                 {upcomingBookings.map((booking) => (
                   <div
                     key={booking.id}
-                    className="bg-white border-4 border-black p-6 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all"
+                    className="bg-[#faf9f7] border-4 border-black p-6 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="text-4xl">{getBookingIcon(booking.type)}</div>
@@ -156,7 +178,7 @@ export default function MySessionsPage() {
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <span className="font-bold">Time:</span>
-                          <span className="font-semibold">{booking.time}</span>
+                          <span className="font-semibold">{formatTime(booking.time)}</span>
                         </div>
                         {booking.courtNumber && (
                           <div className="flex items-center gap-2 text-sm">
@@ -180,47 +202,59 @@ export default function MySessionsPage() {
                 Past Sessions
               </h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pastBookings.map((booking) => (
-                  <div
-                    key={booking.id}
-                    className="bg-white border-2 border-gray-300 p-6 opacity-75"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="text-4xl grayscale">{getBookingIcon(booking.type)}</div>
-                      <div className="px-3 py-1 bg-gray-200 border-2 border-gray-400 text-xs font-bold uppercase text-gray-600">
-                        {booking.creditCost} {booking.creditCost === 1 ? 'Credit' : 'Credits'}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-black uppercase tracking-tight text-gray-700">
-                        {booking.name}
-                      </h3>
-                      
-                      <div className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                        {getBookingTypeLabel(booking.type)}
-                      </div>
-
-                      <div className="pt-3 border-t-2 border-gray-200 space-y-1">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <span className="font-bold">Date:</span>
-                          <span className="font-semibold">{formatDate(booking.date)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <span className="font-bold">Time:</span>
-                          <span className="font-semibold">{booking.time}</span>
-                        </div>
-                        {booking.courtNumber && (
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span className="font-bold">Court:</span>
-                            <span className="font-semibold">#{booking.courtNumber}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="bg-[#faf9f7] border-4 border-black overflow-hidden">
+                {/* Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-black text-white">
+                        <th className="px-6 py-4 text-left text-sm font-black uppercase tracking-wide border-r-2 border-gray-700">
+                          Court/Class
+                        </th>
+                        <th className="px-6 py-4 text-center text-sm font-black uppercase tracking-wide border-r-2 border-gray-700">
+                          Court #
+                        </th>
+                        <th className="px-6 py-4 text-center text-sm font-black uppercase tracking-wide border-r-2 border-gray-700">
+                          Date
+                        </th>
+                        <th className="px-6 py-4 text-center text-sm font-black uppercase tracking-wide border-r-2 border-gray-700">
+                          Time
+                        </th>
+                        <th className="px-6 py-4 text-center text-sm font-black uppercase tracking-wide">
+                          Credit
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pastBookings.map((booking, index) => (
+                        <tr 
+                          key={booking.id}
+                          className={`${
+                            index % 2 === 0 ? 'bg-[#faf9f7]' : 'bg-[#f5f4f2]'
+                          } border-t-2 border-gray-300 hover:bg-gray-100 transition-colors`}
+                        >
+                          <td className="px-6 py-4 font-bold text-gray-700">
+                            {booking.name}
+                          </td>
+                          <td className="px-6 py-4 font-semibold text-gray-700 text-center">
+                            {booking.courtNumber ? `#${booking.courtNumber}` : '—'}
+                          </td>
+                          <td className="px-6 py-4 font-semibold text-gray-700 text-center">
+                            {formatDateShort(booking.date)}
+                          </td>
+                          <td className="px-6 py-4 font-semibold text-gray-700 text-center">
+                            {formatTime(booking.time)}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span className="inline-block px-3 py-1 bg-gray-200 border-2 border-gray-400 text-xs font-bold uppercase text-gray-600">
+                              {booking.creditCost}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -236,7 +270,7 @@ export default function MySessionsPage() {
               </Link>
               <button
                 onClick={() => window.print()}
-                className="px-8 py-4 bg-white text-black font-bold uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
+                className="px-8 py-4 bg-[#faf9f7] text-black font-bold uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
               >
                 Print Schedule
               </button>

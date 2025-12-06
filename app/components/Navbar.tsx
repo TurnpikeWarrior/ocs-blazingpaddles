@@ -14,7 +14,7 @@ export default function Navbar({ isAuthenticated = false, userCredits = 0, onLog
   const pathname = usePathname();
 
   return (
-    <nav className="bg-white border-b-2 border-black">
+    <nav className="bg-[#faf9f7] border-b-2 border-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}

@@ -13,6 +13,8 @@ export default function MySessionsPage() {
   const router = useRouter();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [infoMessage, setInfoMessage] = useState<string>('');
 
   // Protect route
   useEffect(() => {
@@ -24,19 +26,23 @@ export default function MySessionsPage() {
   // Handle ESC key to close modal
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && showCancelModal) {
-        handleCloseCancelModal();
+      if (event.key === 'Escape') {
+        if (showInfoModal) {
+          setShowInfoModal(false);
+        } else if (showCancelModal) {
+          handleCloseCancelModal();
+        }
       }
     };
 
-    if (showCancelModal) {
+    if (showCancelModal || showInfoModal) {
       document.addEventListener('keydown', handleEscKey);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscKey);
     };
-  }, [showCancelModal]);
+  }, [showCancelModal, showInfoModal]);
 
   if (!user) {
     return null;
@@ -155,9 +161,30 @@ export default function MySessionsPage() {
             <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-2">
               My Sessions
             </h1>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-600 mb-4">
               View and manage your court reservations and class bookings.
             </p>
+            
+            {/* Credits Info */}
+            <div className="flex items-center gap-4 mt-4">
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-semibold text-gray-700">Credits Available:</span>
+                <div className="px-4 py-2 bg-yellow-400 border-2 border-black text-lg font-black">
+                  {user.credits} {user.credits === 1 ? 'Credit' : 'Credits'}
+                </div>
+              </div>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setInfoMessage('Credit purchase feature coming soon!');
+                  setShowInfoModal(true);
+                }}
+                className="px-6 py-2 bg-black text-white font-bold text-sm uppercase tracking-wide hover:bg-gray-800 transition-colors border-2 border-black"
+              >
+                Buy More Credits
+              </a>
+            </div>
           </div>
 
           {/* No Bookings State */}
@@ -398,6 +425,47 @@ export default function MySessionsPage() {
                   Yes, Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Info Modal */}
+      {showInfoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#faf9f7] border-4 border-black max-w-md w-full">
+            {/* Modal Header */}
+            <div className="bg-yellow-400 border-b-4 border-black p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-black uppercase tracking-tight text-black">
+                    Information
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setShowInfoModal(false)}
+                  className="text-3xl font-bold hover:opacity-70 text-black"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              <div className="bg-yellow-50 border-2 border-yellow-300 p-4">
+                <p className="text-base text-gray-900 font-semibold">
+                  {infoMessage}
+                </p>
+              </div>
+
+              {/* Action Button */}
+              <button
+                onClick={() => setShowInfoModal(false)}
+                className="w-full py-4 bg-black text-white font-bold text-lg uppercase tracking-wide hover:bg-gray-800 transition-colors border-2 border-black"
+              >
+                OK
+              </button>
             </div>
           </div>
         </div>

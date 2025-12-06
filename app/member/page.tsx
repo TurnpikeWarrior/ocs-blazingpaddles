@@ -23,6 +23,8 @@ export default function MemberPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   // Protect route
   useEffect(() => {
@@ -35,7 +37,9 @@ export default function MemberPage() {
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (showDetailsModal) {
+        if (showErrorModal) {
+          setShowErrorModal(false);
+        } else if (showDetailsModal) {
           setShowDetailsModal(false);
           setSelectedBooking(null);
           setShowCancelConfirmation(false);
@@ -45,14 +49,14 @@ export default function MemberPage() {
       }
     };
 
-    if (showBookingModal || showDetailsModal) {
+    if (showBookingModal || showDetailsModal || showErrorModal) {
       document.addEventListener('keydown', handleEscKey);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscKey);
     };
-  }, [showBookingModal, showDetailsModal]);
+  }, [showBookingModal, showDetailsModal, showErrorModal]);
 
   if (!user) {
     return null;
@@ -96,19 +100,22 @@ export default function MemberPage() {
 
   const handleBooking = () => {
     if (!selectedDate || !selectedTime) {
-      alert('Please select a date and time.');
+      setErrorMessage('Please select a date and time.');
+      setShowErrorModal(true);
       return;
     }
 
     const creditCost = CREDIT_COSTS[bookingType];
 
     if (user.credits < creditCost) {
-      alert(`Insufficient credits. You need ${creditCost} credits for this booking.`);
+      setErrorMessage(`Insufficient credits. You need ${creditCost} credits for this booking.`);
+      setShowErrorModal(true);
       return;
     }
 
     if (bookingType === 'class' && !selectedClass) {
-      alert('Please select a class.');
+      setErrorMessage('Please select a class.');
+      setShowErrorModal(true);
       return;
     }
 
@@ -465,6 +472,47 @@ export default function MemberPage() {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#faf9f7] border-4 border-black max-w-md w-full">
+            {/* Modal Header */}
+            <div className="bg-red-500 border-b-4 border-black p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-black uppercase tracking-tight text-black">
+                    Error
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setShowErrorModal(false)}
+                  className="text-3xl font-bold hover:opacity-70 text-black"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              <div className="bg-red-50 border-2 border-red-300 p-4">
+                <p className="text-base text-red-900 font-semibold">
+                  {errorMessage}
+                </p>
+              </div>
+
+              {/* Action Button */}
+              <button
+                onClick={() => setShowErrorModal(false)}
+                className="w-full py-4 bg-black text-white font-bold text-lg uppercase tracking-wide hover:bg-gray-800 transition-colors border-2 border-black"
+              >
+                OK
+              </button>
             </div>
           </div>
         </div>

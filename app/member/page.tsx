@@ -31,6 +31,29 @@ export default function MemberPage() {
     }
   }, [isAuthenticated, router]);
 
+  // Handle ESC key to close modals
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showDetailsModal) {
+          setShowDetailsModal(false);
+          setSelectedBooking(null);
+          setShowCancelConfirmation(false);
+        } else if (showBookingModal) {
+          setShowBookingModal(false);
+        }
+      }
+    };
+
+    if (showBookingModal || showDetailsModal) {
+      document.addEventListener('keydown', handleEscKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [showBookingModal, showDetailsModal]);
+
   if (!user) {
     return null;
   }

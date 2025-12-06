@@ -228,7 +228,6 @@ export default function MemberPage() {
               </div>
 
               {/* Court Number */}
-              {/* Court Number */}
               <div>
                 <label className="block text-sm font-bold uppercase tracking-wide mb-3">
                   Court Number

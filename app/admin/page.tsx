@@ -202,16 +202,6 @@ export default function AdminPage() {
             </p>
           </div>
 
-          {/* Create Class Button */}
-          <div className="mb-8">
-            <button
-              onClick={() => setShowCalendar(true)}
-              className="px-8 py-4 bg-black text-white font-bold text-lg uppercase tracking-wide hover:bg-gray-800 transition-colors border-2 border-black"
-            >
-              + Create New Class
-            </button>
-          </div>
-
           {/* Calendar for selecting time slot */}
           {showCalendar && (
             <div className="mb-12">
@@ -219,12 +209,6 @@ export default function AdminPage() {
                 <h2 className="text-2xl font-black uppercase tracking-tight">
                   Select Time Slot for New Class
                 </h2>
-                <button
-                  onClick={() => setShowCalendar(false)}
-                  className="px-4 py-2 bg-gray-200 text-black font-bold text-sm uppercase tracking-wide hover:bg-gray-300 transition-colors border-2 border-black"
-                >
-                  Cancel
-                </button>
               </div>
               <WeeklyCalendar
                 onTimeSlotClick={handleTimeSlotClick}

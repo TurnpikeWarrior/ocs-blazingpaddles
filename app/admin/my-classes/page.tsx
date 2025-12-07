@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { useAuth } from '../context/AuthContext';
-import { Booking } from '../types';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+import { useAuth } from '../../context/AuthContext';
+import { Booking } from '../../types';
 
-export default function MySessionsPage() {
+export default function MyClassesPage() {
   const { user, bookings, isAuthenticated, isAdmin, logout, removeBooking } = useAuth();
   const router = useRouter();
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -16,12 +16,14 @@ export default function MySessionsPage() {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string>('');
 
-  // Protect route
+  // Protect route - admin only
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
+    } else if (!isAdmin) {
+      router.push('/member');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isAdmin, router]);
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function MySessionsPage() {
     };
   }, [showCancelModal, showInfoModal]);
 
-  if (!user) {
+  if (!user || !isAdmin) {
     return null;
   }
 
@@ -156,34 +158,11 @@ export default function MySessionsPage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-2">
-              {isAdmin ? "My Classes" : "My Sessions"}
+              My Classes
             </h1>
             <p className="text-xl text-gray-600 mb-4">
               View and manage your court reservations and class bookings.
             </p>
-            
-            {/* Credits Info - Only show for non-admin users */}
-            {!isAdmin && (
-              <div className="flex items-center gap-4 mt-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-semibold text-gray-700">Credits Available:</span>
-                  <div className="px-4 py-2 bg-yellow-400 border-2 border-black text-lg font-black">
-                    {user.credits} {user.credits === 1 ? 'Credit' : 'Credits'}
-                  </div>
-                </div>
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setInfoMessage('Credit purchase feature coming soon!');
-                    setShowInfoModal(true);
-                  }}
-                  className="px-6 py-2 bg-black text-white font-bold text-sm uppercase tracking-wide hover:bg-gray-800 transition-colors border-2 border-black"
-                >
-                  Buy More Credits
-                </a>
-              </div>
-            )}
           </div>
 
           {/* No Bookings State */}
@@ -191,26 +170,26 @@ export default function MySessionsPage() {
             <div className="bg-[#faf9f7] border-4 border-black p-12 text-center">
               <div className="text-6xl mb-4">📅</div>
               <h2 className="text-2xl font-bold mb-3 uppercase tracking-wide">
-                No Sessions Yet
+                No Classes Yet
               </h2>
               <p className="text-gray-600 mb-6">
-                You haven't made any bookings yet. Start by reserving a court or joining a class!
+                You haven't made any bookings yet. Start by creating a class!
               </p>
               <Link
-                href="/member"
+                href="/admin"
                 className="inline-block px-8 py-4 bg-black text-white font-bold uppercase tracking-wide hover:bg-gray-800 transition-colors"
               >
-                Book Now
+                Create Class
               </Link>
             </div>
           )}
 
-          {/* Upcoming Sessions */}
+          {/* Upcoming Classes */}
           {upcomingBookings.length > 0 && (
             <div className="mb-12">
               <h2 className="text-3xl font-black uppercase tracking-tight mb-6 flex items-center gap-3">
                 <span className="w-2 h-8 bg-yellow-400 border-2 border-black" />
-                {isAdmin ? "Upcoming Classes" : "Upcoming Sessions"}
+                Upcoming Classes
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -222,16 +201,11 @@ export default function MySessionsPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="text-4xl">{getBookingIcon(booking.type)}</div>
                       <div className="flex flex-col gap-2 items-stretch">
-                        {!isAdmin && (
-                          <div className="px-4 py-2 bg-yellow-400 border-2 border-black text-xs font-bold uppercase text-center">
-                            {booking.creditCost} {booking.creditCost === 1 ? 'Credit' : 'Credits'}
-                          </div>
-                        )}
                         <button
                           onClick={() => handleCancelClick(booking)}
                           className="px-4 py-2 bg-red-500 text-white font-bold text-xs uppercase tracking-wide hover:bg-red-600 transition-colors border-2 border-black text-center whitespace-nowrap"
                         >
-                          {isAdmin ? "Cancel Class" : "Cancel Reservation"}
+                          Cancel Class
                         </button>
                       </div>
                     </div>
@@ -268,12 +242,12 @@ export default function MySessionsPage() {
             </div>
           )}
 
-          {/* Past Sessions */}
+          {/* Past Classes */}
           {pastBookings.length > 0 && (
             <div>
               <h2 className="text-3xl font-black uppercase tracking-tight mb-6 flex items-center gap-3">
                 <span className="w-2 h-8 bg-gray-400 border-2 border-black" />
-                Past Sessions
+                Past Classes
               </h2>
               
               <div className="bg-[#faf9f7] border-4 border-black overflow-hidden">
@@ -337,10 +311,10 @@ export default function MySessionsPage() {
           {bookings.length > 0 && (
             <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href={isAdmin ? "/admin" : "/member"}
+                href="/admin"
                 className="px-8 py-4 bg-black text-white font-bold uppercase tracking-wide hover:bg-gray-800 transition-colors text-center border-2 border-black"
               >
-                {isAdmin ? "Book Another Class" : "Book Another Session"}
+                Book Another Class
               </Link>
               <button
                 onClick={() => window.print()}

@@ -47,9 +47,9 @@ export default function Navbar({ isAuthenticated = false, userCredits = 0, isAdm
                   {isAdmin ? "Create New Class" : "Reserve A Court"}
                 </Link>
                 <Link
-                  href="/my-sessions"
+                  href={isAdmin ? "/admin/my-classes" : "/member/my-sessions"}
                   className={`font-semibold text-sm uppercase tracking-wide transition-colors ${
-                    pathname === '/my-sessions'
+                    (isAdmin ? pathname === '/admin/my-classes' : pathname === '/member/my-sessions')
                       ? 'text-black'
                       : 'text-gray-600 hover:text-black'
                   }`}

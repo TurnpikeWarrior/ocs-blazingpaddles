@@ -7,6 +7,14 @@ export const MOCK_USERS: User[] = [
     email: 'member@blazinpaddles.com',
     name: 'Alex Johnson',
     credits: 15,
+    role: 'member',
+  },
+  {
+    id: '2',
+    email: 'admin@blazinpaddles.com',
+    name: 'Admin User',
+    credits: 999,
+    role: 'admin',
   },
 ];
 

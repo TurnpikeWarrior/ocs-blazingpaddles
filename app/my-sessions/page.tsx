@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { Booking } from '../types';
 
 export default function MySessionsPage() {
-  const { user, bookings, isAuthenticated, logout, removeBooking } = useAuth();
+  const { user, bookings, isAuthenticated, isAdmin, logout, removeBooking } = useAuth();
   const router = useRouter();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
@@ -147,6 +147,7 @@ export default function MySessionsPage() {
       <Navbar 
         isAuthenticated={isAuthenticated} 
         userCredits={user.credits}
+        isAdmin={isAdmin}
         onLogout={handleLogout}
       />
       

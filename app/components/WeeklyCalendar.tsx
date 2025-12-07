@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Booking } from '../types';
+import { Booking, Class } from '../types';
 
 interface WeeklyCalendarProps {
   onTimeSlotClick: (date: Date, time: string) => void;
   onUserBookingClick: (booking: Booking) => void;
+  onClassClick?: (classItem: Class) => void;
   userBookings: Booking[];
+  classes?: Class[];
 }
 
 function getStartOfWeek() {
@@ -19,7 +21,7 @@ function getStartOfWeek() {
   return sunday;
 }
 
-export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, userBookings }: WeeklyCalendarProps) {
+export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, onClassClick, userBookings, classes = [] }: WeeklyCalendarProps) {
   const [currentWeekStart, setCurrentWeekStart] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -132,6 +134,14 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
     );
   };
 
+  // Check if a time slot has a class
+  const getClass = (date: Date, time: string): Class | undefined => {
+    const dateStr = date.toISOString().split('T')[0];
+    return classes.find(
+      (cls) => cls.date === dateStr && cls.time === time
+    );
+  };
+
   const handleTimeSlotClick = (date: Date, time: string) => {
     if (isPastTimeSlot(date, time)) return;
     
@@ -139,6 +149,13 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
     const userBooking = getUserBooking(date, time);
     if (userBooking) {
       onUserBookingClick(userBooking);
+      return;
+    }
+    
+    // Check if this is a class
+    const classItem = getClass(date, time);
+    if (classItem && onClassClick) {
+      onClassClick(classItem);
       return;
     }
     
@@ -154,7 +171,11 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
           <div className="flex gap-4 text-xs font-semibold">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-yellow-500 border-2 border-yellow-600 rounded"></div>
-              <span>Court/Class</span>
+              <span>Your Booking</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 border-2 border-blue-600 rounded"></div>
+              <span>Class</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-gray-300 border-2 border-gray-400 rounded"></div>
@@ -238,19 +259,21 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
                 const past = isPastTimeSlot(date, time);
                 const reserved = isReserved(date, time);
                 const userBooking = getUserBooking(date, time);
+                const classItem = getClass(date, time);
                 const today = isToday(date);
+                const hasUserClassBooking = userBooking?.type === 'class' && userBooking?.classId === classItem?.id;
 
                 return (
                   <button
                     key={dateIndex}
                     onClick={() => handleTimeSlotClick(date, time)}
-                    disabled={past || (reserved && !userBooking)}
+                    disabled={past || (reserved && !userBooking && !classItem)}
                     className={`
                       min-h-[60px] p-1 text-center text-xs font-semibold border-r border-gray-300 last:border-r-0
                       transition-all relative
                       ${today ? 'border-r-2 border-yellow-400' : ''}
                       ${past ? 'bg-gray-100 cursor-not-allowed text-gray-400' : ''}
-                      ${!past && !reserved && !userBooking ? 'hover:bg-yellow-100 cursor-pointer' : ''}
+                      ${!past && !reserved && !userBooking && !classItem ? 'hover:bg-yellow-100 cursor-pointer' : ''}
                     `}
                   >
                     {userBooking && (
@@ -258,7 +281,12 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, us
                         ✓ {userBooking.name}
                       </div>
                     )}
-                    {reserved && !past && !userBooking && (
+                    {classItem && !hasUserClassBooking && (
+                      <div className="h-[52px] px-3 rounded-lg font-bold text-xs leading-tight flex items-center justify-center bg-blue-500 text-white shadow-md hover:shadow-lg transition-all cursor-pointer">
+                        Class {classItem.enrolledCount}/{classItem.maxCapacity}
+                      </div>
+                    )}
+                    {reserved && !past && !userBooking && !classItem && (
                       <div className="h-[52px] px-3 rounded-lg bg-gray-300 text-gray-700 font-semibold text-xs leading-tight shadow-sm flex items-center justify-center">
                         <div>All Courts<br />Reserved</div>
                       </div>

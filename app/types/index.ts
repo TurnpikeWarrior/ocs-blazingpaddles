@@ -4,6 +4,7 @@ export interface User {
   email: string;
   name: string;
   credits: number;
+  role?: 'member' | 'admin';
 }
 
 // Booking Types
@@ -26,6 +27,17 @@ export interface Booking {
   name: string;
   creditCost: number;
   courtNumber?: number;
+  classId?: string;
+}
+
+export interface Class {
+  id: string;
+  name: string;
+  date: string;
+  time: string;
+  maxCapacity: number;
+  enrolledCount: number;
+  creditCost: number;
 }
 
 // Calendar Types

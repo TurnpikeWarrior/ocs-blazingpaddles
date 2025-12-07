@@ -6,17 +6,15 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import WeeklyCalendar from '../components/WeeklyCalendar';
 import { useAuth } from '../context/AuthContext';
-import { CREDIT_COSTS, AVAILABLE_CLASSES } from '../utils/mockData';
-import { BookingType, Booking } from '../types';
+import { CREDIT_COSTS } from '../utils/mockData';
+import { Booking, Class } from '../types';
 
 export default function MemberPage() {
-  const { user, isAuthenticated, logout, addBooking, removeBooking, bookings } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout, addBooking, removeBooking, bookings, classes } = useAuth();
   const router = useRouter();
   
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [bookingType, setBookingType] = useState<BookingType>('court');
-  const [selectedClass, setSelectedClass] = useState<string>('');
   const [courtNumber, setCourtNumber] = useState<number>(1);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -25,6 +23,8 @@ export default function MemberPage() {
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showClassModal, setShowClassModal] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
 
   // Protect route
   useEffect(() => {
@@ -39,6 +39,9 @@ export default function MemberPage() {
       if (event.key === 'Escape') {
         if (showErrorModal) {
           setShowErrorModal(false);
+        } else if (showClassModal) {
+          setShowClassModal(false);
+          setSelectedClass(null);
         } else if (showDetailsModal) {
           setShowDetailsModal(false);
           setSelectedBooking(null);
@@ -49,14 +52,14 @@ export default function MemberPage() {
       }
     };
 
-    if (showBookingModal || showDetailsModal || showErrorModal) {
+    if (showBookingModal || showDetailsModal || showErrorModal || showClassModal) {
       document.addEventListener('keydown', handleEscKey);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscKey);
     };
-  }, [showBookingModal, showDetailsModal, showErrorModal]);
+  }, [showBookingModal, showDetailsModal, showErrorModal, showClassModal]);
 
   if (!user) {
     return null;
@@ -77,6 +80,59 @@ export default function MemberPage() {
     setSelectedBooking(booking);
     setShowDetailsModal(true);
     setShowCancelConfirmation(false);
+  };
+
+  const handleClassClick = (classItem: Class) => {
+    setSelectedClass(classItem);
+    setShowClassModal(true);
+  };
+
+  const handleJoinClass = () => {
+    if (!selectedClass) return;
+
+    const creditCost = CREDIT_COSTS.class;
+
+    if (user.credits < creditCost) {
+      setErrorMessage(`Insufficient credits. You need ${creditCost} credit to join this class.`);
+      setShowErrorModal(true);
+      setShowClassModal(false);
+      return;
+    }
+
+    if (selectedClass.enrolledCount >= selectedClass.maxCapacity) {
+      setErrorMessage('This class is full. Please select another class.');
+      setShowErrorModal(true);
+      setShowClassModal(false);
+      return;
+    }
+
+    // Check if user is already enrolled
+    const alreadyEnrolled = bookings.some(
+      b => b.type === 'class' && b.classId === selectedClass.id
+    );
+
+    if (alreadyEnrolled) {
+      setErrorMessage('You are already enrolled in this class.');
+      setShowErrorModal(true);
+      setShowClassModal(false);
+      return;
+    }
+
+    // Create booking
+    addBooking({
+      date: selectedClass.date,
+      time: selectedClass.time,
+      type: 'class',
+      name: selectedClass.name,
+      creditCost: creditCost,
+      classId: selectedClass.id,
+    });
+
+    // Show success message
+    setShowSuccess(true);
+    setShowClassModal(false);
+    setSelectedClass(null);
+    setTimeout(() => setShowSuccess(false), 3000);
   };
 
   const handleCancelBookingClick = () => {
@@ -154,6 +210,7 @@ export default function MemberPage() {
       <Navbar 
         isAuthenticated={isAuthenticated} 
         userCredits={user.credits}
+        isAdmin={isAdmin}
         onLogout={handleLogout}
       />
       
@@ -180,7 +237,9 @@ export default function MemberPage() {
           <WeeklyCalendar 
             onTimeSlotClick={handleTimeSlotClick}
             onUserBookingClick={handleUserBookingClick}
+            onClassClick={handleClassClick}
             userBookings={bookings}
+            classes={classes}
           />
         </div>
       </main>
@@ -211,19 +270,16 @@ export default function MemberPage() {
 
             {/* Modal Body */}
             <div className="p-6 space-y-6">
-              {/* Booking Type Selector */}
+              {/* Booking Type Info */}
               <div>
                 <label className="block text-sm font-bold uppercase tracking-wide mb-3">
                   Booking Type
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setBookingType('court')}
-                    className="py-3 px-4 font-bold text-sm uppercase tracking-wide border-2 transition-all bg-black text-white border-black"
-                  >
-                    Court<br/>
-                    <span className="text-xs">3 credits</span>
-                  </button>
+                <div className="bg-gray-50 border-2 border-gray-300 p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold">Court</span>
+                    <span className="text-sm text-gray-600">(3 credits)</span>
+                  </div>
                 </div>
               </div>
 
@@ -452,6 +508,103 @@ export default function MemberPage() {
               >
                 OK
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Join Class Modal */}
+      {showClassModal && selectedClass && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#faf9f7] border-4 border-black max-w-lg w-full">
+            {/* Modal Header */}
+            <div className="bg-blue-500 border-b-4 border-black p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-black uppercase tracking-tight mb-2 text-white">
+                    Join Class
+                  </h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowClassModal(false);
+                    setSelectedClass(null);
+                  }}
+                  className="text-3xl font-bold hover:opacity-70 text-white"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Class Details */}
+              <div className="bg-gray-50 border-2 border-gray-300 p-4">
+                <h3 className="font-bold uppercase text-sm mb-3">Class Details</h3>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    <span className="font-semibold">Class:</span>{' '}
+                    <span className="text-lg font-bold">{selectedClass.name}</span>
+                  </p>
+                  <p>
+                    <span className="font-semibold">Date:</span>{' '}
+                    {new Date(selectedClass.date).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Time:</span> {formatTime(selectedClass.time)}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Enrollment:</span>{' '}
+                    <span className="font-bold">
+                      {selectedClass.enrolledCount} / {selectedClass.maxCapacity} students
+                    </span>
+                  </p>
+                  <p>
+                    <span className="font-semibold">Credit Cost:</span> {selectedClass.creditCost} Credit
+                  </p>
+                </div>
+              </div>
+
+              {/* Availability Warning */}
+              {selectedClass.enrolledCount >= selectedClass.maxCapacity ? (
+                <div className="bg-red-50 border-2 border-red-300 p-4">
+                  <p className="text-sm text-red-800 font-semibold">
+                    ⚠️ This class is full. No more spots available.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-green-50 border-2 border-green-300 p-4">
+                  <p className="text-sm text-green-800 font-semibold">
+                    ✓ {selectedClass.maxCapacity - selectedClass.enrolledCount} spots available
+                  </p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    setShowClassModal(false);
+                    setSelectedClass(null);
+                  }}
+                  className="flex-1 py-4 bg-[#faf9f7] text-black font-bold text-lg uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleJoinClass}
+                  disabled={selectedClass.enrolledCount >= selectedClass.maxCapacity}
+                  className="flex-1 py-4 bg-blue-500 text-white font-bold text-lg uppercase tracking-wide hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed border-4 border-black"
+                >
+                  Join Class ({CREDIT_COSTS.class} Credit)
+                </button>
+              </div>
             </div>
           </div>
         </div>

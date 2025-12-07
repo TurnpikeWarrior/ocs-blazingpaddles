@@ -6,7 +6,7 @@ import Footer from './components/Footer';
 import { useAuth } from './context/AuthContext';
 
 export default function Home() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, isAdmin, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -17,6 +17,7 @@ export default function Home() {
       <Navbar 
         isAuthenticated={isAuthenticated}
         userCredits={user?.credits}
+        isAdmin={isAdmin}
         onLogout={handleLogout}
       />
       

@@ -7,10 +7,11 @@ import { usePathname } from 'next/navigation';
 interface NavbarProps {
   isAuthenticated?: boolean;
   userCredits?: number;
+  isAdmin?: boolean;
   onLogout?: () => void;
 }
 
-export default function Navbar({ isAuthenticated = false, userCredits = 0, onLogout }: NavbarProps) {
+export default function Navbar({ isAuthenticated = false, userCredits = 0, isAdmin = false, onLogout }: NavbarProps) {
   const pathname = usePathname();
 
   return (
@@ -35,6 +36,18 @@ export default function Navbar({ isAuthenticated = false, userCredits = 0, onLog
           <div className="flex items-center space-x-6">
             {isAuthenticated ? (
               <>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className={`font-semibold text-sm uppercase tracking-wide transition-colors ${
+                      pathname === '/admin'
+                        ? 'text-black'
+                        : 'text-gray-600 hover:text-black'
+                    }`}
+                  >
+                    Admin
+                  </Link>
+                )}
                 <Link
                   href="/member"
                   className={`font-semibold text-sm uppercase tracking-wide transition-colors ${

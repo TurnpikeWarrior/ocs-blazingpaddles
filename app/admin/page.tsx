@@ -23,6 +23,8 @@ export default function AdminPage() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [classToDelete, setClassToDelete] = useState<Class | null>(null);
+  const [showClassDetailsModal, setShowClassDetailsModal] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
 
   // Fetch all bookings for admin calendar
   const fetchAllBookings = async () => {
@@ -75,6 +77,9 @@ export default function AdminPage() {
       if (event.key === 'Escape') {
         if (showErrorModal) {
           setShowErrorModal(false);
+        } else if (showClassDetailsModal) {
+          setShowClassDetailsModal(false);
+          setSelectedClass(null);
         } else if (showDeleteModal) {
           handleCancelDelete();
         } else if (showCreateModal) {
@@ -83,14 +88,14 @@ export default function AdminPage() {
       }
     };
 
-    if (showCreateModal || showErrorModal || showDeleteModal) {
+    if (showCreateModal || showErrorModal || showDeleteModal || showClassDetailsModal) {
       document.addEventListener('keydown', handleEscKey);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscKey);
     };
-  }, [showCreateModal, showErrorModal, showDeleteModal]);
+  }, [showCreateModal, showErrorModal, showDeleteModal, showClassDetailsModal]);
 
   if (!user || !isAdmin) {
     return null;
@@ -170,8 +175,9 @@ export default function AdminPage() {
     );
     
     if (existingClass) {
-      setErrorMessage('A class already exists at this time slot.');
-      setShowErrorModal(true);
+      // Open class details modal instead of showing error
+      setSelectedClass(existingClass);
+      setShowClassDetailsModal(true);
       return;
     }
 
@@ -180,6 +186,19 @@ export default function AdminPage() {
     setClassTime(time);
     setShowCalendar(false);
     setShowCreateModal(true);
+  };
+
+  const handleClassClick = (classItem: Class) => {
+    setSelectedClass(classItem);
+    setShowClassDetailsModal(true);
+  };
+
+  const handleCancelClassClick = () => {
+    if (selectedClass) {
+      setClassToDelete(selectedClass);
+      setShowClassDetailsModal(false);
+      setShowDeleteModal(true);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -240,6 +259,7 @@ export default function AdminPage() {
               <WeeklyCalendar
                 onTimeSlotClick={handleTimeSlotClick}
                 onUserBookingClick={() => {}}
+                onClassClick={handleClassClick}
                 userBookings={[]}
                 classes={classes}
                 allBookings={allBookings}
@@ -502,6 +522,94 @@ export default function AdminPage() {
                   className="flex-1 py-4 bg-red-500 text-white font-bold text-lg uppercase tracking-wide hover:bg-red-600 transition-colors border-4 border-black"
                 >
                   Delete Class
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Class Details Modal */}
+      {showClassDetailsModal && selectedClass && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#faf9f7] border-4 border-black max-w-md w-full">
+            <div className="bg-yellow-400 border-b-4 border-black p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-black uppercase tracking-tight text-black">
+                    Class Details
+                  </h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowClassDetailsModal(false);
+                    setSelectedClass(null);
+                  }}
+                  className="text-3xl font-bold hover:opacity-70 text-black"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-1">
+                    Class Name
+                  </p>
+                  <p className="text-xl font-black text-black">{selectedClass.name}</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-1">
+                    Date
+                  </p>
+                  <p className="text-lg font-semibold text-black">{formatDate(selectedClass.date)}</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-1">
+                    Time
+                  </p>
+                  <p className="text-lg font-semibold text-black">{formatTime(selectedClass.time)}</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-1">
+                    Enrollment
+                  </p>
+                  <p className="text-lg font-semibold text-black">
+                    {selectedClass.enrolledCount} / {selectedClass.maxCapacity} students
+                  </p>
+                </div>
+                
+                <div>
+                  <p className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-1">
+                    Credit Cost
+                  </p>
+                  <p className="text-lg font-semibold text-black">
+                    {selectedClass.creditCost} {selectedClass.creditCost === 1 ? 'Credit' : 'Credits'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 pt-4 border-t-2 border-gray-300">
+                <button
+                  onClick={() => {
+                    setShowClassDetailsModal(false);
+                    setSelectedClass(null);
+                  }}
+                  className="flex-1 py-4 bg-[#faf9f7] text-black font-bold text-lg uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleCancelClassClick}
+                  className="flex-1 py-4 bg-red-500 text-white font-bold text-lg uppercase tracking-wide hover:bg-red-600 transition-colors border-4 border-black"
+                >
+                  Cancel Class
                 </button>
               </div>
             </div>

@@ -57,17 +57,14 @@ export default function Navbar({ isAuthenticated = false, userCredits = 0, isAdm
                   {isAdmin ? "My Classes" : "My Sessions"}
                 </Link>
                 <div className="flex items-center space-x-4">
-                  {isAdmin && (
-                    <Link
-                      href="/admin"
-                      className={`px-3 py-1 bg-yellow-400 border-2 border-black font-bold text-sm uppercase tracking-wide transition-colors ${
-                        pathname === '/admin'
-                          ? 'bg-yellow-500'
-                          : 'hover:bg-yellow-500'
-                      }`}
-                    >
+                  {isAdmin ? (
+                    <div className="px-3 py-1 bg-yellow-400 border-2 border-black font-bold text-sm uppercase tracking-wide">
                       ADMIN
-                    </Link>
+                    </div>
+                  ) : (
+                    <div className="px-3 py-1 bg-yellow-400 border-2 border-black font-bold text-sm uppercase tracking-wide">
+                      {userCredits} CREDITS
+                    </div>
                   )}
                   <button
                     onClick={onLogout}

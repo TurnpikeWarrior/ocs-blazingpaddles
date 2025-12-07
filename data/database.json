@@ -17,6 +17,16 @@
   ],
   "bookings": [
     {
+      "date": "2025-12-09",
+      "time": "10:00 AM",
+      "type": "class",
+      "name": "Beginner Fundamental",
+      "creditCost": 1,
+      "classId": "class-1765099052368-l5r2ixveu",
+      "userId": "1",
+      "id": "booking-1765099237105-f7rxnbur6"
+    },
+    {
       "date": "2025-12-11",
       "time": "11:00 AM",
       "type": "class",
@@ -24,7 +34,7 @@
       "creditCost": 1,
       "classId": "class-1765099061241-bynr8zf8j",
       "userId": "1",
-      "id": "booking-1765099138532-io6z0qpa7"
+      "id": "booking-1765099297412-9lbhqvx0f"
     }
   ],
   "classes": [

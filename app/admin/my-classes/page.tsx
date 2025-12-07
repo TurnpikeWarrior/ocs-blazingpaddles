@@ -6,13 +6,13 @@ import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { useAuth } from '../../context/AuthContext';
-import { Booking } from '../../types';
+import { Class } from '../../types';
 
 export default function MyClassesPage() {
-  const { user, bookings, isAuthenticated, isAdmin, logout, removeBooking } = useAuth();
+  const { user, classes, isAuthenticated, isAdmin, logout, deleteClass } = useAuth();
   const router = useRouter();
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<Class | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string>('');
 
@@ -31,20 +31,20 @@ export default function MyClassesPage() {
       if (event.key === 'Escape') {
         if (showInfoModal) {
           setShowInfoModal(false);
-        } else if (showCancelModal) {
-          handleCloseCancelModal();
+        } else if (showDeleteModal) {
+          handleCloseDeleteModal();
         }
       }
     };
 
-    if (showCancelModal || showInfoModal) {
+    if (showDeleteModal || showInfoModal) {
       document.addEventListener('keydown', handleEscKey);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscKey);
     };
-  }, [showCancelModal, showInfoModal]);
+  }, [showDeleteModal, showInfoModal]);
 
   if (!user || !isAdmin) {
     return null;
@@ -55,22 +55,22 @@ export default function MyClassesPage() {
     router.push('/');
   };
 
-  const handleCancelClick = (booking: Booking) => {
-    setBookingToCancel(booking);
-    setShowCancelModal(true);
+  const handleDeleteClick = (classItem: Class) => {
+    setClassToDelete(classItem);
+    setShowDeleteModal(true);
   };
 
-  const handleConfirmCancel = () => {
-    if (bookingToCancel) {
-      removeBooking(bookingToCancel.id);
-      setShowCancelModal(false);
-      setBookingToCancel(null);
+  const handleConfirmDelete = () => {
+    if (classToDelete) {
+      deleteClass(classToDelete.id);
+      setShowDeleteModal(false);
+      setClassToDelete(null);
     }
   };
 
-  const handleCloseCancelModal = () => {
-    setShowCancelModal(false);
-    setBookingToCancel(null);
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setClassToDelete(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -105,43 +105,21 @@ export default function MyClassesPage() {
     return `${hour}:${minutes} ${period}`;
   };
 
-  const getBookingIcon = (type: string) => {
-    switch (type) {
-      case 'court':
-        return '🏓';
-      case 'class':
-        return '👨‍🏫';
-      default:
-        return '📅';
-    }
-  };
-
-  const getBookingTypeLabel = (type: string) => {
-    switch (type) {
-      case 'court':
-        return 'Court Reservation';
-      case 'class':
-        return 'Class';
-      default:
-        return 'Booking';
-    }
-  };
-
-  // Sort bookings by date
-  const sortedBookings = [...bookings].sort((a, b) => {
+  // Sort classes by date
+  const sortedClasses = [...classes].sort((a, b) => {
     return new Date(a.date).getTime() - new Date(b.date).getTime();
   });
 
-  // Separate upcoming and past bookings
+  // Separate upcoming and past classes
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  const upcomingBookings = sortedBookings.filter(
-    (booking) => new Date(booking.date) >= today
+  const upcomingClasses = sortedClasses.filter(
+    (classItem) => new Date(classItem.date) >= today
   );
   
-  const pastBookings = sortedBookings.filter(
-    (booking) => new Date(booking.date) < today
+  const pastClasses = sortedClasses.filter(
+    (classItem) => new Date(classItem.date) < today
   );
 
   return (
@@ -161,19 +139,19 @@ export default function MyClassesPage() {
               My Classes
             </h1>
             <p className="text-xl text-gray-600 mb-4">
-              View and manage your court reservations and class bookings.
+              View and manage all classes you've created.
             </p>
           </div>
 
-          {/* No Bookings State */}
-          {bookings.length === 0 && (
+          {/* No Classes State */}
+          {classes.length === 0 && (
             <div className="bg-[#faf9f7] border-4 border-black p-12 text-center">
-              <div className="text-6xl mb-4">📅</div>
+              <div className="text-6xl mb-4">👨‍🏫</div>
               <h2 className="text-2xl font-bold mb-3 uppercase tracking-wide">
                 No Classes Yet
               </h2>
               <p className="text-gray-600 mb-6">
-                You haven't made any bookings yet. Start by creating a class!
+                You haven't created any classes yet. Start by creating a class!
               </p>
               <Link
                 href="/admin"
@@ -185,7 +163,7 @@ export default function MyClassesPage() {
           )}
 
           {/* Upcoming Classes */}
-          {upcomingBookings.length > 0 && (
+          {upcomingClasses.length > 0 && (
             <div className="mb-12">
               <h2 className="text-3xl font-black uppercase tracking-tight mb-6 flex items-center gap-3">
                 <span className="w-2 h-8 bg-yellow-400 border-2 border-black" />
@@ -193,47 +171,49 @@ export default function MyClassesPage() {
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {upcomingBookings.map((booking) => (
+                {upcomingClasses.map((classItem) => (
                   <div
-                    key={booking.id}
+                    key={classItem.id}
                     className="bg-[#faf9f7] border-4 border-black p-6 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all"
                   >
                     <div className="flex items-start justify-between mb-4">
-                      <div className="text-4xl">{getBookingIcon(booking.type)}</div>
+                      <div className="text-4xl">👨‍🏫</div>
                       <div className="flex flex-col gap-2 items-stretch">
                         <button
-                          onClick={() => handleCancelClick(booking)}
+                          onClick={() => handleDeleteClick(classItem)}
                           className="px-4 py-2 bg-red-500 text-white font-bold text-xs uppercase tracking-wide hover:bg-red-600 transition-colors border-2 border-black text-center whitespace-nowrap"
                         >
-                          Cancel Class
+                          Delete Class
                         </button>
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <h3 className="text-xl font-black uppercase tracking-tight">
-                        {booking.name}
+                        {classItem.name}
                       </h3>
                       
                       <div className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
-                        {getBookingTypeLabel(booking.type)}
+                        Class
                       </div>
 
                       <div className="pt-3 border-t-2 border-gray-200 space-y-1">
                         <div className="flex items-center gap-2 text-sm">
                           <span className="font-bold">Date:</span>
-                          <span className="font-semibold">{formatDate(booking.date)}</span>
+                          <span className="font-semibold">{formatDate(classItem.date)}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <span className="font-bold">Time:</span>
-                          <span className="font-semibold">{formatTime(booking.time)}</span>
+                          <span className="font-semibold">{formatTime(classItem.time)}</span>
                         </div>
-                        {booking.courtNumber && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="font-bold">Court:</span>
-                            <span className="font-semibold">#{booking.courtNumber}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-bold">Enrollment:</span>
+                          <span className="font-semibold">{classItem.enrolledCount} / {classItem.maxCapacity}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-bold">Credit Cost:</span>
+                          <span className="font-semibold">{classItem.creditCost} {classItem.creditCost === 1 ? 'Credit' : 'Credits'}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -243,7 +223,7 @@ export default function MyClassesPage() {
           )}
 
           {/* Past Classes */}
-          {pastBookings.length > 0 && (
+          {pastClasses.length > 0 && (
             <div>
               <h2 className="text-3xl font-black uppercase tracking-tight mb-6 flex items-center gap-3">
                 <span className="w-2 h-8 bg-gray-400 border-2 border-black" />
@@ -257,10 +237,7 @@ export default function MyClassesPage() {
                     <thead>
                       <tr className="bg-black text-white">
                         <th className="px-6 py-4 text-left text-sm font-black uppercase tracking-wide border-r-2 border-gray-700">
-                          Court/Class
-                        </th>
-                        <th className="px-6 py-4 text-center text-sm font-black uppercase tracking-wide border-r-2 border-gray-700">
-                          Court #
+                          Class Name
                         </th>
                         <th className="px-6 py-4 text-center text-sm font-black uppercase tracking-wide border-r-2 border-gray-700">
                           Date
@@ -268,34 +245,37 @@ export default function MyClassesPage() {
                         <th className="px-6 py-4 text-center text-sm font-black uppercase tracking-wide border-r-2 border-gray-700">
                           Time
                         </th>
+                        <th className="px-6 py-4 text-center text-sm font-black uppercase tracking-wide border-r-2 border-gray-700">
+                          Enrollment
+                        </th>
                         <th className="px-6 py-4 text-center text-sm font-black uppercase tracking-wide">
-                          Credit
+                          Credit Cost
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {pastBookings.map((booking, index) => (
+                      {pastClasses.map((classItem, index) => (
                         <tr 
-                          key={booking.id}
+                          key={classItem.id}
                           className={`${
                             index % 2 === 0 ? 'bg-[#faf9f7]' : 'bg-[#f5f4f2]'
                           } border-t-2 border-gray-300 hover:bg-gray-100 transition-colors`}
                         >
                           <td className="px-6 py-4 font-bold text-gray-700">
-                            {booking.name}
+                            {classItem.name}
                           </td>
                           <td className="px-6 py-4 font-semibold text-gray-700 text-center">
-                            {booking.courtNumber ? `#${booking.courtNumber}` : '—'}
+                            {formatDateShort(classItem.date)}
                           </td>
                           <td className="px-6 py-4 font-semibold text-gray-700 text-center">
-                            {formatDateShort(booking.date)}
+                            {formatTime(classItem.time)}
                           </td>
                           <td className="px-6 py-4 font-semibold text-gray-700 text-center">
-                            {formatTime(booking.time)}
+                            {classItem.enrolledCount} / {classItem.maxCapacity}
                           </td>
                           <td className="px-6 py-4 text-center">
                             <span className="inline-block px-3 py-1 bg-gray-200 border-2 border-gray-400 text-xs font-bold uppercase text-gray-600">
-                              {booking.creditCost}
+                              {classItem.creditCost}
                             </span>
                           </td>
                         </tr>
@@ -308,7 +288,7 @@ export default function MyClassesPage() {
           )}
 
           {/* Action Buttons */}
-          {bookings.length > 0 && (
+          {classes.length > 0 && (
             <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/admin"
@@ -327,8 +307,8 @@ export default function MyClassesPage() {
         </div>
       </main>
 
-      {/* Cancel Confirmation Modal */}
-      {showCancelModal && bookingToCancel && (
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && classToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-[#faf9f7] border-4 border-black max-w-lg w-full">
             {/* Modal Header */}
@@ -336,11 +316,11 @@ export default function MyClassesPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="text-3xl font-black uppercase tracking-tight text-black">
-                    Cancel Reservation
+                    Delete Class
                   </h2>
                 </div>
                 <button
-                  onClick={handleCloseCancelModal}
+                  onClick={handleCloseDeleteModal}
                   className="text-3xl font-bold hover:opacity-70 text-black"
                 >
                   ×
@@ -356,12 +336,15 @@ export default function MyClassesPage() {
                   Are you sure?
                 </h3>
                 <p className="text-base mb-4 text-red-900">
-                  You are about to cancel <span className="font-bold">"{bookingToCancel.name}"</span>
+                  You are about to delete <span className="font-bold">"{classToDelete.name}"</span>
+                </p>
+                <p className="text-sm mb-4 text-red-800">
+                  This will also cancel all student enrollments for this class and refund their credits.
                 </p>
                 <div className="bg-[#faf9f7] border-2 border-red-300 p-4 space-y-2 text-sm">
                   <p>
                     <span className="font-semibold">Date:</span>{' '}
-                    {new Date(bookingToCancel.date).toLocaleDateString('en-US', { 
+                    {new Date(classToDelete.date).toLocaleDateString('en-US', { 
                       weekday: 'long', 
                       year: 'numeric', 
                       month: 'long', 
@@ -369,18 +352,10 @@ export default function MyClassesPage() {
                     })}
                   </p>
                   <p>
-                    <span className="font-semibold">Time:</span> {formatTime(bookingToCancel.time)}
+                    <span className="font-semibold">Time:</span> {formatTime(classToDelete.time)}
                   </p>
-                  {bookingToCancel.courtNumber && (
-                    <p>
-                      <span className="font-semibold">Court:</span> #{bookingToCancel.courtNumber}
-                    </p>
-                  )}
-                  <p className="pt-2 border-t-2 border-red-200">
-                    <span className="font-semibold">Refund Amount:</span>{' '}
-                    <span className="text-lg font-bold text-green-600">
-                      {bookingToCancel.creditCost} {bookingToCancel.creditCost === 1 ? 'Credit' : 'Credits'}
-                    </span>
+                  <p>
+                    <span className="font-semibold">Enrollment:</span> {classToDelete.enrolledCount} / {classToDelete.maxCapacity} students
                   </p>
                 </div>
               </div>
@@ -388,16 +363,16 @@ export default function MyClassesPage() {
               {/* Action Buttons */}
               <div className="flex gap-4">
                 <button
-                  onClick={handleCloseCancelModal}
+                  onClick={handleCloseDeleteModal}
                   className="flex-1 py-4 bg-[#faf9f7] text-black font-bold text-lg uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
                 >
                   No, Keep It
                 </button>
                 <button
-                  onClick={handleConfirmCancel}
+                  onClick={handleConfirmDelete}
                   className="flex-1 py-4 bg-red-500 text-white font-bold text-lg uppercase tracking-wide hover:bg-red-600 transition-colors border-4 border-black"
                 >
-                  Yes, Cancel
+                  Yes, Delete
                 </button>
               </div>
             </div>

@@ -35,6 +35,16 @@
       "classId": "class-1765099061241-bynr8zf8j",
       "userId": "1",
       "id": "booking-1765099297412-9lbhqvx0f"
+    },
+    {
+      "date": "2025-12-09",
+      "time": "1:00 PM",
+      "type": "court",
+      "name": "Court 1",
+      "creditCost": 3,
+      "courtNumber": 1,
+      "userId": "1",
+      "id": "booking-1765099340401-sqbxrqo4m"
     }
   ],
   "classes": [

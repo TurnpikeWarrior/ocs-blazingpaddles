@@ -274,7 +274,11 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, on
                 const past = isPastTimeSlot(date, time);
                 const reserved = isReserved(date, time);
                 const userBooking = getUserBooking(date, time);
-                const classItem = getClass(date, time);
+                let classItem = getClass(date, time);
+                // If user has a class booking but classItem wasn't found by date/time, try finding by classId
+                if (userBooking?.type === 'class' && userBooking.classId && !classItem) {
+                  classItem = classes.find(cls => cls.id === userBooking.classId);
+                }
                 const today = isToday(date);
                 const hasUserClassBooking = userBooking?.type === 'class' && userBooking?.classId === classItem?.id;
 
@@ -291,13 +295,19 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, on
                       ${!past && !reserved && !userBooking && !classItem ? 'hover:bg-yellow-100 cursor-pointer' : ''}
                     `}
                   >
-                    {userBooking && (
+                    {userBooking && userBooking.type !== 'class' && (
                       <div className="h-[52px] px-3 rounded-lg font-bold text-xs leading-tight flex items-center justify-center bg-yellow-500 text-black shadow-md hover:shadow-lg transition-all">
                         ✓ {userBooking.name}
                       </div>
                     )}
+                    {classItem && hasUserClassBooking && (
+                      <div className="h-[52px] px-3 rounded-lg font-bold text-xs leading-tight flex flex-col items-center justify-center bg-blue-500 text-white shadow-md hover:shadow-lg transition-all">
+                        <div>✓ Class</div>
+                        <div className="text-[10px]">{classItem.enrolledCount} / {classItem.maxCapacity}</div>
+                      </div>
+                    )}
                     {classItem && !hasUserClassBooking && (
-                      <div className="h-[52px] px-3 rounded-lg font-bold text-xs leading-tight flex flex-col items-center justify-center bg-blue-500 text-white shadow-md hover:shadow-lg transition-all cursor-pointer">
+                      <div className="h-[52px] px-3 rounded-lg font-bold text-xs leading-tight flex flex-col items-center justify-center bg-blue-300 text-black shadow-md hover:shadow-lg transition-all cursor-pointer">
                         <div>Class</div>
                         <div>{classItem.enrolledCount} / {classItem.maxCapacity}</div>
                       </div>

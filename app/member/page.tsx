@@ -10,7 +10,7 @@ import { CREDIT_COSTS } from '../utils/mockData';
 import { Booking, Class } from '../types';
 
 export default function MemberPage() {
-  const { user, isAuthenticated, isAdmin, logout, addBooking, removeBooking, bookings, classes } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout, addBooking, removeBooking, bookings, classes, joinClass } = useAuth();
   const router = useRouter();
   
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -87,7 +87,7 @@ export default function MemberPage() {
     setShowClassModal(true);
   };
 
-  const handleJoinClass = () => {
+  const handleJoinClass = async () => {
     if (!selectedClass) return;
 
     const creditCost = CREDIT_COSTS.class;
@@ -118,15 +118,8 @@ export default function MemberPage() {
       return;
     }
 
-    // Create booking
-    addBooking({
-      date: selectedClass.date,
-      time: selectedClass.time,
-      type: 'class',
-      name: selectedClass.name,
-      creditCost: creditCost,
-      classId: selectedClass.id,
-    });
+    // Join the class using the API
+    await joinClass(selectedClass.id);
 
     // Show success message
     setShowSuccess(true);
@@ -139,10 +132,10 @@ export default function MemberPage() {
     setShowCancelConfirmation(true);
   };
 
-  const handleConfirmCancellation = () => {
+  const handleConfirmCancellation = async () => {
     if (!selectedBooking) return;
 
-    removeBooking(selectedBooking.id);
+    await removeBooking(selectedBooking.id);
     setShowDetailsModal(false);
     setShowCancelConfirmation(false);
     setSelectedBooking(null);
@@ -162,7 +155,7 @@ export default function MemberPage() {
     return `${year}-${month}-${day}`;
   };
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!selectedDate || !selectedTime) {
       setErrorMessage('Please select a date and time.');
       setShowErrorModal(true);
@@ -180,7 +173,7 @@ export default function MemberPage() {
     // Create booking
     const bookingName = `Court ${courtNumber}`;
 
-    addBooking({
+    await addBooking({
       date: formatDateLocal(selectedDate),
       time: selectedTime,
       type: 'court',
@@ -610,7 +603,7 @@ export default function MemberPage() {
                   disabled={selectedClass.enrolledCount >= selectedClass.maxCapacity}
                   className="flex-1 py-4 bg-blue-500 text-white font-bold text-lg uppercase tracking-wide hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed border-4 border-black"
                 >
-                  Join Class ({CREDIT_COSTS.class} Credit)
+                  JOIN CLASS
                 </button>
               </div>
             </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { Class } from '../types';
 import { CREDIT_COSTS } from '../utils/mockData';
 
-export default function AdminPage() {
+function AdminPageContent() {
   const { user, classes, isAuthenticated, isAdmin, logout, createClass, deleteClass } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -621,4 +621,23 @@ export default function AdminPage() {
     </>
   );
 }
+
+function AdminPage() {
+  return (
+    <Suspense 
+      fallback={
+        <div className="min-h-screen bg-[#f5f4f2] flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-4 border-black"></div>
+            <p className="mt-4 font-bold">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <AdminPageContent />
+    </Suspense>
+  );
+}
+
+export default AdminPage;
 

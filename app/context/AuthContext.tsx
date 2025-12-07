@@ -76,19 +76,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock authentication - in production, this would call an API
-    const foundUser = MOCK_USERS.find((u) => u.email === email);
-    
-    if (foundUser && password === 'password') {
-      setUser(foundUser);
-      localStorage.setItem('blazin-user', JSON.stringify(foundUser));
-      // Fetch data after login
-      await fetchBookings(foundUser.id);
-      await fetchClasses();
-      return true;
+    try {
+      // Fetch user from Supabase
+      const response = await fetch(`/api/users?email=${encodeURIComponent(email)}`);
+      
+      if (!response.ok) {
+        // User not found or error
+        return false;
+      }
+      
+      const foundUser = await response.json();
+      
+      // Simple password check (in production, use Supabase Auth with hashed passwords)
+      // For now, we'll use a simple check - you should implement proper authentication
+      if (password === 'password') {
+        setUser(foundUser);
+        localStorage.setItem('blazin-user', JSON.stringify(foundUser));
+        // Fetch data after login
+        await fetchBookings(foundUser.id);
+        await fetchClasses();
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error during login:', error);
+      return false;
     }
-    
-    return false;
   };
 
   const logout = () => {

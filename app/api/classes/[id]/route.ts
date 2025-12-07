@@ -1,27 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { supabase } from '@/app/lib/supabase';
+import { Class } from '@/app/types';
 
-const dbPath = path.join(process.cwd(), 'data', 'database.json');
-
-async function readDatabase() {
-  try {
-    const data = await fs.readFile(dbPath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    return { bookings: [], classes: [] };
-  }
+// Helper function to transform snake_case to camelCase
+function transformClassToCamelCase(data: any): Class {
+  return {
+    id: data.id,
+    name: data.name,
+    date: data.date,
+    time: data.time,
+    maxCapacity: data.max_capacity,
+    creditCost: data.credit_cost,
+    enrolledCount: data.enrolled_count || 0,
+  };
 }
 
-async function writeDatabase(data: any) {
-  const dataDir = path.join(process.cwd(), 'data');
-  try {
-    await fs.access(dataDir);
-  } catch {
-    await fs.mkdir(dataDir, { recursive: true });
-  }
-  
-  await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf-8');
+// Helper function to transform camelCase to snake_case
+function transformClassToSnakeCase(data: any): any {
+  return {
+    id: data.id,
+    name: data.name,
+    date: data.date,
+    time: data.time,
+    max_capacity: data.maxCapacity,
+    credit_cost: data.creditCost,
+  };
 }
 
 // PUT - Update a class (for enrollment changes)
@@ -32,18 +35,26 @@ export async function PUT(
   try {
     const params = await context.params;
     const body = await request.json();
-    const db = await readDatabase();
     const classId = params.id;
     
-    const classIndex = db.classes.findIndex((c: any) => c.id === classId);
-    if (classIndex === -1) {
-      return NextResponse.json({ error: 'Class not found' }, { status: 404 });
+    // Transform camelCase to snake_case for database
+    const dbData = transformClassToSnakeCase(body);
+    
+    const { data, error } = await supabase
+      .from('classes')
+      .update(dbData)
+      .eq('id', classId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating class:', error);
+      return NextResponse.json({ error: 'Failed to update class' }, { status: 500 });
     }
     
-    db.classes[classIndex] = { ...db.classes[classIndex], ...body };
-    await writeDatabase(db);
-    
-    return NextResponse.json(db.classes[classIndex]);
+    // Transform back to camelCase
+    const transformedData = transformClassToCamelCase(data);
+    return NextResponse.json(transformedData);
   } catch (error) {
     console.error('Error updating class:', error);
     return NextResponse.json({ error: 'Failed to update class' }, { status: 500 });
@@ -57,18 +68,29 @@ export async function DELETE(
 ) {
   try {
     const params = await context.params;
-    const db = await readDatabase();
     const classId = params.id;
     
-    const classIndex = db.classes.findIndex((c: any) => c.id === classId);
-    if (classIndex === -1) {
-      return NextResponse.json({ error: 'Class not found' }, { status: 404 });
+    // First, delete all bookings for this class (using snake_case column name)
+    const { error: bookingsError } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('class_id', classId);
+    
+    if (bookingsError) {
+      console.error('Error deleting class bookings:', bookingsError);
+      return NextResponse.json({ error: 'Failed to delete class bookings' }, { status: 500 });
     }
     
-    // Also remove all bookings for this class
-    db.bookings = db.bookings.filter((b: any) => b.classId !== classId);
-    db.classes.splice(classIndex, 1);
-    await writeDatabase(db);
+    // Then delete the class
+    const { error: classError } = await supabase
+      .from('classes')
+      .delete()
+      .eq('id', classId);
+    
+    if (classError) {
+      console.error('Error deleting class:', classError);
+      return NextResponse.json({ error: 'Failed to delete class' }, { status: 500 });
+    }
     
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -156,32 +156,34 @@ export default function MySessionsPage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-2">
-              My Sessions
+              {isAdmin ? "My Classes" : "My Sessions"}
             </h1>
             <p className="text-xl text-gray-600 mb-4">
               View and manage your court reservations and class bookings.
             </p>
             
-            {/* Credits Info */}
-            <div className="flex items-center gap-4 mt-4">
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-semibold text-gray-700">Credits Available:</span>
-                <div className="px-4 py-2 bg-yellow-400 border-2 border-black text-lg font-black">
-                  {user.credits} {user.credits === 1 ? 'Credit' : 'Credits'}
+            {/* Credits Info - Only show for non-admin users */}
+            {!isAdmin && (
+              <div className="flex items-center gap-4 mt-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-semibold text-gray-700">Credits Available:</span>
+                  <div className="px-4 py-2 bg-yellow-400 border-2 border-black text-lg font-black">
+                    {user.credits} {user.credits === 1 ? 'Credit' : 'Credits'}
+                  </div>
                 </div>
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setInfoMessage('Credit purchase feature coming soon!');
+                    setShowInfoModal(true);
+                  }}
+                  className="px-6 py-2 bg-black text-white font-bold text-sm uppercase tracking-wide hover:bg-gray-800 transition-colors border-2 border-black"
+                >
+                  Buy More Credits
+                </a>
               </div>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setInfoMessage('Credit purchase feature coming soon!');
-                  setShowInfoModal(true);
-                }}
-                className="px-6 py-2 bg-black text-white font-bold text-sm uppercase tracking-wide hover:bg-gray-800 transition-colors border-2 border-black"
-              >
-                Buy More Credits
-              </a>
-            </div>
+            )}
           </div>
 
           {/* No Bookings State */}
@@ -208,7 +210,7 @@ export default function MySessionsPage() {
             <div className="mb-12">
               <h2 className="text-3xl font-black uppercase tracking-tight mb-6 flex items-center gap-3">
                 <span className="w-2 h-8 bg-yellow-400 border-2 border-black" />
-                Upcoming Sessions
+                {isAdmin ? "Upcoming Classes" : "Upcoming Sessions"}
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -220,14 +222,16 @@ export default function MySessionsPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="text-4xl">{getBookingIcon(booking.type)}</div>
                       <div className="flex flex-col gap-2 items-stretch">
-                        <div className="px-4 py-2 bg-yellow-400 border-2 border-black text-xs font-bold uppercase text-center">
-                          {booking.creditCost} {booking.creditCost === 1 ? 'Credit' : 'Credits'}
-                        </div>
+                        {!isAdmin && (
+                          <div className="px-4 py-2 bg-yellow-400 border-2 border-black text-xs font-bold uppercase text-center">
+                            {booking.creditCost} {booking.creditCost === 1 ? 'Credit' : 'Credits'}
+                          </div>
+                        )}
                         <button
                           onClick={() => handleCancelClick(booking)}
-                          className="px-4 py-2 bg-red-500 text-black font-bold text-xs uppercase tracking-wide hover:bg-red-600 transition-colors border-2 border-black text-center whitespace-nowrap"
+                          className="px-4 py-2 bg-red-500 text-white font-bold text-xs uppercase tracking-wide hover:bg-red-600 transition-colors border-2 border-black text-center whitespace-nowrap"
                         >
-                          Cancel Reservation
+                          {isAdmin ? "Cancel Class" : "Cancel Reservation"}
                         </button>
                       </div>
                     </div>
@@ -333,10 +337,10 @@ export default function MySessionsPage() {
           {bookings.length > 0 && (
             <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/member"
+                href={isAdmin ? "/admin" : "/member"}
                 className="px-8 py-4 bg-black text-white font-bold uppercase tracking-wide hover:bg-gray-800 transition-colors text-center border-2 border-black"
               >
-                Book Another Session
+                {isAdmin ? "Book Another Class" : "Book Another Session"}
               </Link>
               <button
                 onClick={() => window.print()}
@@ -417,7 +421,7 @@ export default function MySessionsPage() {
                 </button>
                 <button
                   onClick={handleConfirmCancel}
-                  className="flex-1 py-4 bg-red-500 text-black font-bold text-lg uppercase tracking-wide hover:bg-red-600 transition-colors border-4 border-black"
+                  className="flex-1 py-4 bg-red-500 text-white font-bold text-lg uppercase tracking-wide hover:bg-red-600 transition-colors border-4 border-black"
                 >
                   Yes, Cancel
                 </button>

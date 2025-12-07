@@ -118,17 +118,17 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, on
     return hour <= currentHour;
   };
 
-  // Mock function to check if a time slot is reserved (randomly for demo)
-  const isReserved = (date: Date, time: string) => {
-    // Generate some mock reservations
-    const key = `${date.toDateString()}-${time}`;
-    const hash = key.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return hash % 3 === 0; // Roughly 33% will be reserved
+  // Helper function to format date in local timezone as YYYY-MM-DD
+  const formatDateLocal = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   // Check if a time slot has a user booking
   const getUserBooking = (date: Date, time: string): Booking | undefined => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateLocal(date);
     return userBookings.find(
       (booking) => booking.date === dateStr && booking.time === time
     );
@@ -136,10 +136,25 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, on
 
   // Check if a time slot has a class
   const getClass = (date: Date, time: string): Class | undefined => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateLocal(date);
     return classes.find(
       (cls) => cls.date === dateStr && cls.time === time
     );
+  };
+
+  // Mock function to check if a time slot is reserved (randomly for demo)
+  // Returns false if there's a class at this time slot (classes handle their own display)
+  const isReserved = (date: Date, time: string) => {
+    // If there's a class at this time slot, don't mark it as reserved
+    const classItem = getClass(date, time);
+    if (classItem) {
+      return false;
+    }
+    
+    // Generate some mock reservations
+    const key = `${date.toDateString()}-${time}`;
+    const hash = key.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return hash % 3 === 0; // Roughly 33% will be reserved
   };
 
   const handleTimeSlotClick = (date: Date, time: string) => {
@@ -282,8 +297,9 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, on
                       </div>
                     )}
                     {classItem && !hasUserClassBooking && (
-                      <div className="h-[52px] px-3 rounded-lg font-bold text-xs leading-tight flex items-center justify-center bg-blue-500 text-white shadow-md hover:shadow-lg transition-all cursor-pointer">
-                        Class {classItem.enrolledCount}/{classItem.maxCapacity}
+                      <div className="h-[52px] px-3 rounded-lg font-bold text-xs leading-tight flex flex-col items-center justify-center bg-blue-500 text-white shadow-md hover:shadow-lg transition-all cursor-pointer">
+                        <div>Class</div>
+                        <div>{classItem.enrolledCount} / {classItem.maxCapacity}</div>
                       </div>
                     )}
                     {reserved && !past && !userBooking && !classItem && (

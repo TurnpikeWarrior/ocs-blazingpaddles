@@ -1,4 +1,14 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
 export default function Footer() {
+  const [currentYear, setCurrentYear] = useState<number>(2025);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
   return (
     <footer className="bg-black text-white border-t-2 border-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -30,7 +40,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-700 text-center text-gray-400 text-sm">
-          © {new Date().getFullYear()} Blazin' Paddles. All rights reserved.
+          © {currentYear} Blazin' Paddles. All rights reserved.
         </div>
       </div>
     </footer>

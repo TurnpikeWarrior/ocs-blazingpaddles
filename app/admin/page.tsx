@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import WeeklyCalendar from '../components/WeeklyCalendar';
 import { useAuth } from '../context/AuthContext';
 import { Class } from '../types';
 import { CREDIT_COSTS } from '../utils/mockData';
@@ -11,8 +12,10 @@ import { CREDIT_COSTS } from '../utils/mockData';
 export default function AdminPage() {
   const { user, classes, isAuthenticated, isAdmin, logout, createClass, deleteClass } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [className, setClassName] = useState('');
   const [classDate, setClassDate] = useState('');
   const [classTime, setClassTime] = useState('');
@@ -29,6 +32,15 @@ export default function AdminPage() {
       router.push('/member');
     }
   }, [isAuthenticated, isAdmin, router]);
+
+  // Check for create query parameter and show calendar
+  useEffect(() => {
+    if (isAuthenticated && isAdmin && searchParams.get('create') === 'true') {
+      setShowCalendar(true);
+      // Remove query parameter from URL without page reload
+      router.replace('/admin', { scroll: false });
+    }
+  }, [isAuthenticated, isAdmin, searchParams, router]);
 
   // Handle ESC key to close modals
   useEffect(() => {
@@ -94,6 +106,7 @@ export default function AdminPage() {
     setClassDate('');
     setClassTime('');
     setShowCreateModal(false);
+    setShowCalendar(false);
   };
 
   const handleDeleteClass = (classItem: Class) => {
@@ -112,6 +125,34 @@ export default function AdminPage() {
   const handleCancelDelete = () => {
     setShowDeleteModal(false);
     setClassToDelete(null);
+  };
+
+  // Helper function to format date in local timezone as YYYY-MM-DD
+  const formatDateLocal = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleTimeSlotClick = (date: Date, time: string) => {
+    // Check if there's already a class at this time slot
+    const dateStr = formatDateLocal(date);
+    const existingClass = classes.find(
+      (cls) => cls.date === dateStr && cls.time === time
+    );
+    
+    if (existingClass) {
+      setErrorMessage('A class already exists at this time slot.');
+      setShowErrorModal(true);
+      return;
+    }
+
+    // Pre-fill the date and time, then open the create modal
+    setClassDate(dateStr);
+    setClassTime(time);
+    setShowCalendar(false);
+    setShowCreateModal(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -164,12 +205,35 @@ export default function AdminPage() {
           {/* Create Class Button */}
           <div className="mb-8">
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => setShowCalendar(true)}
               className="px-8 py-4 bg-black text-white font-bold text-lg uppercase tracking-wide hover:bg-gray-800 transition-colors border-2 border-black"
             >
               + Create New Class
             </button>
           </div>
+
+          {/* Calendar for selecting time slot */}
+          {showCalendar && (
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-black uppercase tracking-tight">
+                  Select Time Slot for New Class
+                </h2>
+                <button
+                  onClick={() => setShowCalendar(false)}
+                  className="px-4 py-2 bg-gray-200 text-black font-bold text-sm uppercase tracking-wide hover:bg-gray-300 transition-colors border-2 border-black"
+                >
+                  Cancel
+                </button>
+              </div>
+              <WeeklyCalendar
+                onTimeSlotClick={handleTimeSlotClick}
+                onUserBookingClick={() => {}}
+                userBookings={[]}
+                classes={classes}
+              />
+            </div>
+          )}
 
           {/* Classes List */}
           {sortedClasses.length === 0 ? (
@@ -317,10 +381,11 @@ export default function AdminPage() {
                     setClassName('');
                     setClassDate('');
                     setClassTime('');
+                    setShowCalendar(true);
                   }}
                   className="flex-1 py-4 bg-[#faf9f7] text-black font-bold text-lg uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
                 >
-                  Cancel
+                  Back to Calendar
                 </button>
                 <button
                   onClick={handleCreateClass}

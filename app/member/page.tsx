@@ -154,6 +154,14 @@ export default function MemberPage() {
     setShowCancelConfirmation(false);
   };
 
+  // Helper function to format date in local timezone as YYYY-MM-DD
+  const formatDateLocal = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleBooking = () => {
     if (!selectedDate || !selectedTime) {
       setErrorMessage('Please select a date and time.');
@@ -173,7 +181,7 @@ export default function MemberPage() {
     const bookingName = `Court ${courtNumber}`;
 
     addBooking({
-      date: selectedDate.toISOString().split('T')[0],
+      date: formatDateLocal(selectedDate),
       time: selectedTime,
       type: 'court',
       name: bookingName,

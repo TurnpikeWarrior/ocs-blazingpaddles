@@ -36,27 +36,15 @@ export default function Navbar({ isAuthenticated = false, userCredits = 0, isAdm
           <div className="flex items-center space-x-6">
             {isAuthenticated ? (
               <>
-                {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className={`font-semibold text-sm uppercase tracking-wide transition-colors ${
-                      pathname === '/admin'
-                        ? 'text-black'
-                        : 'text-gray-600 hover:text-black'
-                    }`}
-                  >
-                    Admin
-                  </Link>
-                )}
                 <Link
-                  href="/member"
+                  href={isAdmin ? "/admin?create=true" : "/member"}
                   className={`font-semibold text-sm uppercase tracking-wide transition-colors ${
-                    pathname === '/member'
+                    (isAdmin ? pathname === '/admin' : pathname === '/member')
                       ? 'text-black'
                       : 'text-gray-600 hover:text-black'
                   }`}
                 >
-                  Reserve A Court
+                  {isAdmin ? "Create New Class" : "Reserve A Court"}
                 </Link>
                 <Link
                   href="/my-sessions"
@@ -66,12 +54,21 @@ export default function Navbar({ isAuthenticated = false, userCredits = 0, isAdm
                       : 'text-gray-600 hover:text-black'
                   }`}
                 >
-                  My Sessions
+                  {isAdmin ? "My Classes" : "My Sessions"}
                 </Link>
                 <div className="flex items-center space-x-4">
-                  <div className="px-3 py-1 bg-yellow-400 border-2 border-black font-bold text-sm">
-                    {userCredits} Credits
-                  </div>
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      className={`px-3 py-1 bg-yellow-400 border-2 border-black font-bold text-sm uppercase tracking-wide transition-colors ${
+                        pathname === '/admin'
+                          ? 'bg-yellow-500'
+                          : 'hover:bg-yellow-500'
+                      }`}
+                    >
+                      ADMIN
+                    </Link>
+                  )}
                   <button
                     onClick={onLogout}
                     className="px-4 py-2 bg-black text-white font-semibold text-sm uppercase tracking-wide hover:bg-gray-800 transition-colors"

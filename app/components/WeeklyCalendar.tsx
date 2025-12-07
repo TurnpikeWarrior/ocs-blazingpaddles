@@ -9,6 +9,7 @@ interface WeeklyCalendarProps {
   onClassClick?: (classItem: Class) => void;
   userBookings: Booking[];
   classes?: Class[];
+  allBookings?: Booking[];
 }
 
 function getStartOfWeek() {
@@ -21,7 +22,7 @@ function getStartOfWeek() {
   return sunday;
 }
 
-export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, onClassClick, userBookings, classes = [] }: WeeklyCalendarProps) {
+export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, onClassClick, userBookings, classes = [], allBookings }: WeeklyCalendarProps) {
   const [currentWeekStart, setCurrentWeekStart] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -142,7 +143,7 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, on
     );
   };
 
-  // Mock function to check if a time slot is reserved (randomly for demo)
+  // Check if a time slot is reserved by checking for any court bookings
   // Returns false if there's a class at this time slot (classes handle their own display)
   const isReserved = (date: Date, time: string) => {
     // If there's a class at this time slot, don't mark it as reserved
@@ -151,10 +152,19 @@ export default function WeeklyCalendar({ onTimeSlotClick, onUserBookingClick, on
       return false;
     }
     
-    // Generate some mock reservations
-    const key = `${date.toDateString()}-${time}`;
-    const hash = key.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return hash % 3 === 0; // Roughly 33% will be reserved
+    // Check if there are any court bookings for this date/time
+    const dateStr = formatDateLocal(date);
+    // Use allBookings if provided (for admin), otherwise use userBookings (for members)
+    const bookingsToCheck = allBookings !== undefined ? allBookings : userBookings;
+    const hasCourtBooking = bookingsToCheck.some(
+      (booking) => 
+        booking && 
+        booking.type === 'court' && 
+        booking.date === dateStr && 
+        booking.time === time
+    );
+    
+    return hasCourtBooking;
   };
 
   const handleTimeSlotClick = (date: Date, time: string) => {

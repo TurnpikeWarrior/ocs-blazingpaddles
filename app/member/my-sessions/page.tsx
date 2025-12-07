@@ -9,12 +9,14 @@ import { useAuth } from '../../context/AuthContext';
 import { Booking } from '../../types';
 
 export default function MySessionsPage() {
-  const { user, bookings, isAuthenticated, isAdmin, logout, removeBooking } = useAuth();
+  const { user, bookings, isAuthenticated, isAdmin, logout, removeBooking, updateUserCredits } = useAuth();
   const router = useRouter();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string>('');
+  const [showBuyCreditsModal, setShowBuyCreditsModal] = useState(false);
+  const [selectedCredits, setSelectedCredits] = useState<number | null>(null);
 
   // Protect route
   useEffect(() => {
@@ -29,20 +31,23 @@ export default function MySessionsPage() {
       if (event.key === 'Escape') {
         if (showInfoModal) {
           setShowInfoModal(false);
+        } else if (showBuyCreditsModal) {
+          setShowBuyCreditsModal(false);
+          setSelectedCredits(null);
         } else if (showCancelModal) {
           handleCloseCancelModal();
         }
       }
     };
 
-    if (showCancelModal || showInfoModal) {
+    if (showCancelModal || showInfoModal || showBuyCreditsModal) {
       document.addEventListener('keydown', handleEscKey);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscKey);
     };
-  }, [showCancelModal, showInfoModal]);
+  }, [showCancelModal, showInfoModal, showBuyCreditsModal]);
 
   if (!user) {
     return null;
@@ -69,6 +74,19 @@ export default function MySessionsPage() {
   const handleCloseCancelModal = () => {
     setShowCancelModal(false);
     setBookingToCancel(null);
+  };
+
+  const handleBuyCredits = (amount: number) => {
+    if (!user) return;
+    
+    setSelectedCredits(amount);
+    const newCredits = user.credits + amount;
+    updateUserCredits(newCredits);
+    
+    setShowBuyCreditsModal(false);
+    setInfoMessage(`Successfully purchased ${amount} ${amount === 1 ? 'credit' : 'credits'}!`);
+    setShowInfoModal(true);
+    setSelectedCredits(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -171,17 +189,12 @@ export default function MySessionsPage() {
                     {user.credits} {user.credits === 1 ? 'Credit' : 'Credits'}
                   </div>
                 </div>
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setInfoMessage('Credit purchase feature coming soon!');
-                    setShowInfoModal(true);
-                  }}
+                <button
+                  onClick={() => setShowBuyCreditsModal(true)}
                   className="px-6 py-2 bg-black text-white font-bold text-sm uppercase tracking-wide hover:bg-gray-800 transition-colors border-2 border-black"
                 >
                   Buy More Credits
-                </a>
+                </button>
               </div>
             )}
           </div>
@@ -466,6 +479,70 @@ export default function MySessionsPage() {
                 className="w-full py-4 bg-black text-white font-bold text-lg uppercase tracking-wide hover:bg-gray-800 transition-colors border-2 border-black"
               >
                 OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Buy Credits Modal */}
+      {showBuyCreditsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#faf9f7] border-4 border-black max-w-md w-full">
+            {/* Modal Header */}
+            <div className="bg-yellow-400 border-b-4 border-black p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-black uppercase tracking-tight text-black">
+                    Buy Credits
+                  </h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowBuyCreditsModal(false);
+                    setSelectedCredits(null);
+                  }}
+                  className="text-3xl font-bold hover:opacity-70 text-black"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              <div className="bg-yellow-50 border-2 border-yellow-300 p-4">
+                <p className="text-base text-gray-900 font-semibold mb-4">
+                  How many credits would you like to buy?
+                </p>
+                
+                {/* Credit Options */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[5, 10, 15, 20].map((amount) => (
+                    <button
+                      key={amount}
+                      onClick={() => handleBuyCredits(amount)}
+                      className={`px-4 py-3 bg-white border-2 font-bold text-lg uppercase tracking-wide transition-colors ${
+                        selectedCredits === amount
+                          ? 'border-black bg-yellow-200'
+                          : 'border-gray-300 hover:border-black hover:bg-yellow-100'
+                      }`}
+                    >
+                      {amount} Credits
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button
+                onClick={() => {
+                  setShowBuyCreditsModal(false);
+                  setSelectedCredits(null);
+                }}
+                className="w-full py-4 bg-[#faf9f7] text-black font-bold text-lg uppercase tracking-wide hover:bg-gray-100 transition-colors border-2 border-black"
+              >
+                Cancel
               </button>
             </div>
           </div>

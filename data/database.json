@@ -17,16 +17,6 @@
   ],
   "bookings": [
     {
-      "date": "2025-12-09",
-      "time": "10:00 AM",
-      "type": "class",
-      "name": "Beginner Fundamental",
-      "creditCost": 1,
-      "classId": "class-1765099052368-l5r2ixveu",
-      "userId": "1",
-      "id": "booking-1765099237105-f7rxnbur6"
-    },
-    {
       "date": "2025-12-11",
       "time": "11:00 AM",
       "type": "class",
@@ -45,6 +35,36 @@
       "courtNumber": 1,
       "userId": "1",
       "id": "booking-1765099340401-sqbxrqo4m"
+    },
+    {
+      "date": "2025-12-10",
+      "time": "10:00 AM",
+      "type": "court",
+      "name": "Court 4",
+      "creditCost": 3,
+      "courtNumber": 4,
+      "userId": "1",
+      "id": "booking-1765099620507-ye8q35t5b"
+    },
+    {
+      "date": "2025-12-09",
+      "time": "3:00 PM",
+      "type": "court",
+      "name": "Court 1",
+      "creditCost": 3,
+      "courtNumber": 1,
+      "userId": "1",
+      "id": "booking-1765100083930-slf4fpa4i"
+    },
+    {
+      "date": "2025-12-10",
+      "time": "12:00 PM",
+      "type": "court",
+      "name": "Court 1",
+      "creditCost": 3,
+      "courtNumber": 1,
+      "userId": "1",
+      "id": "booking-1765100394658-stw69l9l2"
     }
   ],
   "classes": [

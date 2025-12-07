@@ -13,7 +13,7 @@ export default function AdminPage() {
   const { user, classes, isAuthenticated, isAdmin, logout, createClass, deleteClass } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  const [allBookings, setAllBookings] = useState<any[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [className, setClassName] = useState('');
@@ -23,6 +23,33 @@ export default function AdminPage() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [classToDelete, setClassToDelete] = useState<Class | null>(null);
+
+  // Fetch all bookings for admin calendar
+  const fetchAllBookings = async () => {
+    try {
+      const response = await fetch('/api/bookings');
+      if (response.ok) {
+        const data = await response.json();
+        setAllBookings(data);
+      }
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
+    }
+  };
+
+  // Fetch bookings on mount and when admin status changes
+  useEffect(() => {
+    if (isAdmin) {
+      fetchAllBookings();
+    }
+  }, [isAdmin]);
+
+  // Refresh bookings when calendar is shown or classes change
+  useEffect(() => {
+    if (isAdmin && showCalendar) {
+      fetchAllBookings();
+    }
+  }, [isAdmin, showCalendar, classes]);
 
   // Protect route - admin only
   useEffect(() => {
@@ -215,6 +242,7 @@ export default function AdminPage() {
                 onUserBookingClick={() => {}}
                 userBookings={[]}
                 classes={classes}
+                allBookings={allBookings}
               />
             </div>
           )}

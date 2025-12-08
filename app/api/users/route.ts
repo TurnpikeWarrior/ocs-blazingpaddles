@@ -46,9 +46,18 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
+    // Transform camelCase to snake_case for database
+    const dbData = {
+      id: body.id,
+      email: body.email,
+      name: body.name,
+      credits: body.credits,
+      role: body.role,
+    };
+    
     const { data, error } = await supabase
       .from('users')
-      .upsert([body], { onConflict: 'id' })
+      .upsert([dbData], { onConflict: 'id' })
       .select()
       .single();
     

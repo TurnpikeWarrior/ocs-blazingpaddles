@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Booking, Class } from '../types';
-import { MOCK_USERS, MOCK_BOOKINGS } from '../utils/mockData';
+import { supabaseClient } from '../lib/supabase-client';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
@@ -11,10 +12,11 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  loginWithOAuth: (provider: 'google' | 'github' | 'facebook') => Promise<void>;
+  logout: () => Promise<void>;
   addBooking: (booking: Omit<Booking, 'id' | 'userId'>) => Promise<void>;
   removeBooking: (bookingId: string) => Promise<void>;
-  updateUserCredits: (credits: number) => void;
+  updateUserCredits: (credits: number) => Promise<void>;
   createClass: (classData: Omit<Class, 'id' | 'enrolledCount'>) => Promise<void>;
   deleteClass: (classId: string) => Promise<void>;
   joinClass: (classId: string) => Promise<void>;
@@ -62,22 +64,85 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchClasses();
   };
 
-  // Load user from localStorage on mount and fetch data
-  useEffect(() => {
-    const storedUser = localStorage.getItem('blazin-user');
-    
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      fetchBookings(parsedUser.id);
+  // Sync Supabase Auth user to our users table
+  const syncUserProfile = async (supabaseUser: SupabaseUser) => {
+    try {
+      // Check if user exists in our users table
+      const response = await fetch(`/api/users?email=${encodeURIComponent(supabaseUser.email!)}`);
+      
+      if (response.ok) {
+        // User exists, use it
+        const existingUser = await response.json();
+        setUser(existingUser);
+        await fetchBookings(existingUser.id);
+      } else {
+        // User doesn't exist, create profile in users table
+        const newUser = {
+          id: supabaseUser.id,
+          email: supabaseUser.email!,
+          name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || supabaseUser.email!.split('@')[0],
+          credits: 10, // Default credits for new users
+          role: 'member' as const,
+        };
+        
+        const createResponse = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newUser),
+        });
+        
+        if (createResponse.ok) {
+          const createdUser = await createResponse.json();
+          setUser(createdUser);
+          await fetchBookings(createdUser.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error syncing user profile:', error);
     }
-    
-    fetchClasses();
+  };
+
+  // Initialize auth state and listen for changes
+  useEffect(() => {
+    // Check for Supabase session first
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        syncUserProfile(session.user);
+      } else {
+        // If no Supabase session, check localStorage for email/password login
+        const storedUser = localStorage.getItem('blazin-user');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          fetchBookings(parsedUser.id);
+        }
+      }
+      fetchClasses();
+    });
+
+    // Listen for auth changes (OAuth)
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await syncUserProfile(session.user);
+      } else {
+        // Only clear if we're not using email/password login
+        const storedUser = localStorage.getItem('blazin-user');
+        if (!storedUser) {
+          setUser(null);
+          setBookings([]);
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  // Email/password login (original method)
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Fetch user from Supabase
+      // Fetch user from Supabase users table
       const response = await fetch(`/api/users?email=${encodeURIComponent(email)}`);
       
       if (!response.ok) {
@@ -105,11 +170,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setBookings([]);
-    setClasses([]);
-    localStorage.removeItem('blazin-user');
+  const loginWithOAuth = async (provider: 'google' | 'github' | 'facebook') => {
+    try {
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      
+      if (error) {
+        console.error('Error signing in with OAuth:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error during OAuth login:', error);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      // Sign out from Supabase if OAuth was used
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        await supabaseClient.auth.signOut();
+      }
+      
+      // Clear local storage (for email/password login)
+      localStorage.removeItem('blazin-user');
+      
+      setUser(null);
+      setBookings([]);
+      setClasses([]);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   const addBooking = async (bookingData: Omit<Booking, 'id' | 'userId'>) => {
@@ -129,9 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const newBooking = await response.json();
         
         // Deduct credits
-        const updatedUser = { ...user, credits: user.credits - bookingData.creditCost };
-        setUser(updatedUser);
-        localStorage.setItem('blazin-user', JSON.stringify(updatedUser));
+        await updateUserCredits(user.credits - bookingData.creditCost);
 
         // Immediately update local bookings state
         setBookings(prevBookings => [...prevBookings, newBooking]);
@@ -157,9 +251,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         // Refund credits
-        const updatedUser = { ...user, credits: user.credits + bookingToRemove.creditCost };
-        setUser(updatedUser);
-        localStorage.setItem('blazin-user', JSON.stringify(updatedUser));
+        await updateUserCredits(user.credits + bookingToRemove.creditCost);
 
         // Immediately update local bookings state
         setBookings(prevBookings => prevBookings.filter(b => b.id !== bookingId));
@@ -172,12 +264,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateUserCredits = (credits: number) => {
+  const updateUserCredits = async (credits: number) => {
     if (!user) return;
     
-    const updatedUser = { ...user, credits };
-    setUser(updatedUser);
-    localStorage.setItem('blazin-user', JSON.stringify(updatedUser));
+    try {
+      // Update in database
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...user, credits }),
+      });
+      
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setUser(updatedUser);
+      }
+    } catch (error) {
+      console.error('Error updating user credits:', error);
+    }
   };
 
   const createClass = async (classData: Omit<Class, 'id' | 'enrolledCount'>) => {
@@ -248,6 +352,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
         login,
+        loginWithOAuth,
         logout,
         addBooking,
         removeBooking,

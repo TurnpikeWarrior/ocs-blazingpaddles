@@ -172,16 +172,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithOAuth = async (provider: 'google' | 'github' | 'facebook') => {
     try {
-      const { error } = await supabaseClient.auth.signInWithOAuth({
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
       
       if (error) {
         console.error('Error signing in with OAuth:', error);
         throw error;
+      }
+
+      // If we get a URL, the redirect should happen automatically
+      // The browser will navigate to the OAuth provider
+      if (data?.url) {
+        // The redirect happens automatically, so we don't need to do anything here
+        // The loading state will remain until the callback completes
+        window.location.href = data.url;
       }
     } catch (error) {
       console.error('Error during OAuth login:', error);

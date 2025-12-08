@@ -23,6 +23,17 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, router]);
 
+  // Check for error in URL params (from OAuth callback)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const errorParam = params.get('error');
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam));
+      // Clean up URL
+      window.history.replaceState({}, '', '/login');
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -44,8 +55,13 @@ export default function LoginPage() {
       setIsLoading(provider);
       await loginWithOAuth(provider);
       // The redirect will happen automatically via OAuth flow
-    } catch (err) {
-      setError(`Failed to sign in with ${provider}. Please try again.`);
+    } catch (err: any) {
+      console.error('OAuth login error:', err);
+      if (err?.message?.includes('not enabled') || err?.code === 400) {
+        setError(`${provider.charAt(0).toUpperCase() + provider.slice(1)} OAuth is not enabled. Please enable it in your Supabase dashboard under Authentication > Providers.`);
+      } else {
+        setError(`Failed to sign in with ${provider}. Please try again.`);
+      }
       setIsLoading(null);
     }
   };

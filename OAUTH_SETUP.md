@@ -1,41 +1,76 @@
 # OAuth Login Setup Guide
 
-This application now uses OAuth authentication via Supabase Auth. Follow these steps to configure OAuth providers.
+This application supports both email/password and OAuth authentication via Supabase Auth. Follow these steps to configure OAuth providers.
+
+## ⚠️ Important: Enable OAuth Providers First
+
+**You must enable OAuth providers in your Supabase dashboard before they will work.** If you see an error like "provider is not enabled", follow the steps below.
 
 ## 1. Configure OAuth Providers in Supabase
 
 ### Google OAuth Setup
 
-1. Go to your Supabase project dashboard
-2. Navigate to **Authentication** → **Providers**
-3. Enable **Google** provider
-4. You'll need to:
-   - Create a project in [Google Cloud Console](https://console.cloud.google.com/)
-   - Enable Google+ API
-   - Create OAuth 2.0 credentials
-   - Add authorized redirect URI: `https://your-project.supabase.co/auth/v1/callback`
-   - Copy the Client ID and Client Secret to Supabase
+1. **In Supabase Dashboard:**
+   - Go to your Supabase project dashboard
+   - Navigate to **Authentication** → **Providers**
+   - Find **Google** in the list
+   - Toggle the switch to **Enable** it
+   - Click **Save**
+
+2. **In Google Cloud Console:**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project (or select an existing one)
+   - Navigate to **APIs & Services** → **Credentials**
+   - Click **Create Credentials** → **OAuth client ID**
+   - Choose **Web application** as the application type
+   - Add authorized redirect URI: `https://[your-project-ref].supabase.co/auth/v1/callback`
+     - Replace `[your-project-ref]` with your actual Supabase project reference (found in your Supabase URL)
+   - Copy the **Client ID** and **Client Secret**
+   - Go back to Supabase and paste them into the Google provider settings
+   - Click **Save**
 
 ### GitHub OAuth Setup
 
-1. In Supabase dashboard, go to **Authentication** → **Providers**
-2. Enable **GitHub** provider
-3. You'll need to:
+1. **In Supabase Dashboard:**
+   - Go to **Authentication** → **Providers**
+   - Find **GitHub** in the list
+   - Toggle the switch to **Enable** it
+   - Click **Save**
+
+2. **In GitHub:**
    - Go to [GitHub Developer Settings](https://github.com/settings/developers)
-   - Create a new OAuth App
-   - Set Authorization callback URL: `https://your-project.supabase.co/auth/v1/callback`
-   - Copy the Client ID and Client Secret to Supabase
+   - Click **New OAuth App**
+   - Fill in:
+     - **Application name**: Blazin' Paddles (or your app name)
+     - **Homepage URL**: Your website URL (e.g., `http://localhost:3000` for dev)
+     - **Authorization callback URL**: `https://[your-project-ref].supabase.co/auth/v1/callback`
+       - Replace `[your-project-ref]` with your actual Supabase project reference
+   - Click **Register application**
+   - Copy the **Client ID**
+   - Click **Generate a new client secret** and copy it
+   - Go back to Supabase and paste the Client ID and Client Secret
+   - Click **Save**
 
 ### Facebook OAuth Setup
 
-1. In Supabase dashboard, go to **Authentication** → **Providers**
-2. Enable **Facebook** provider
-3. You'll need to:
+1. **In Supabase Dashboard:**
+   - Go to **Authentication** → **Providers**
+   - Find **Facebook** in the list
+   - Toggle the switch to **Enable** it
+   - Click **Save**
+
+2. **In Facebook Developers:**
    - Go to [Facebook Developers](https://developers.facebook.com/)
-   - Create a new app
-   - Add Facebook Login product
-   - Set Valid OAuth Redirect URIs: `https://your-project.supabase.co/auth/v1/callback`
-   - Copy the App ID and App Secret to Supabase
+   - Click **My Apps** → **Create App**
+   - Choose **Consumer** or **Business** app type
+   - Fill in app details and create the app
+   - Go to **Settings** → **Basic** and note your **App ID** and **App Secret**
+   - Add **Facebook Login** product to your app
+   - Go to **Facebook Login** → **Settings**
+   - Add Valid OAuth Redirect URIs: `https://[your-project-ref].supabase.co/auth/v1/callback`
+     - Replace `[your-project-ref]` with your actual Supabase project reference
+   - Go back to Supabase and paste the App ID and App Secret
+   - Click **Save**
 
 ## 2. Update Redirect URLs
 
@@ -89,8 +124,9 @@ When a user signs in for the first time:
 
 ## Notes
 
-- The application no longer uses email/password authentication
-- All authentication is handled through Supabase Auth
-- User sessions are managed automatically by Supabase
+- The application supports both email/password and OAuth authentication
+- Email/password login works without any OAuth setup
+- OAuth providers must be enabled in Supabase before they will work
+- User sessions are managed automatically by Supabase for OAuth users
 - The `users` table stores additional profile information (credits, role) separate from Supabase Auth
 

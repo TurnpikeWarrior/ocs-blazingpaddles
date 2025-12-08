@@ -118,3 +118,4 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your-anon-key
 - [ ] Browser console shows no errors
 - [ ] Network tab shows successful requests
 
+

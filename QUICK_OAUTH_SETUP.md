@@ -41,3 +41,4 @@ After enabling a provider:
 - Email/password login works without any OAuth setup
 - OAuth is optional - you can use just email/password if you prefer
 
+
